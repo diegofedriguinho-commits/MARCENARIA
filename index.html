@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.0</title>
+<title>DND PLANEJADOS - ESTOQUE V1.1</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
@@ -22,7 +22,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 #leitor::after{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:5}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:2px 8px;border-radius:20px;font-size:10px}
-.grid{display:grid}.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}.gap-2{gap:8px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}.p-2{padding:8px}.pb-24{padding-bottom:96px}.w-full{width:100%}.text-center{text-align:center}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-red-400{color:#f87171}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.grid{display:grid}.gap-2{gap:8px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}.p-2{padding:8px}.pb-24{padding-bottom:96px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+@media(min-width:768px){.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -32,15 +34,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
-<div id="telaLogin" class="fixed" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-2xl font-bold mb-2 text-center">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 text-sm mt-2"></p></div></div>
+<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
 
 <div class="p-2 pb-24">
-<div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold text-red-400">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
+<div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
 
 <div id="dashboard" class="aba ativa"><div class="grid md:grid-cols-3 gap-2">
-<div class="card"><h2 class="text-sm">Total Produtos</h2><p class="text-3xl font-bold"><span id="totalProdutos">0</span></p></div>
-<div class="card"><h2 class="text-sm">Valor em Estoque</h2><p class="text-3xl font-bold text-green-500">R$ <span id="valorEstoque">0.00</span></p></div>
-<div class="card"><h2 class="text-sm">Saídas Hoje</h2><p class="text-3xl font-bold text-red-500"><span id="saidasHoje">0</span></p></div>
+<div class="card"><h2>Total Produtos</h2><p style="font-size:1.875rem;font-weight:bold"><span id="totalProdutos">0</span></p></div>
+<div class="card"><h2>Valor em Estoque</h2><p style="font-size:1.875rem;font-weight:bold" class="text-green-500">R$ <span id="valorEstoque">0.00</span></p></div>
+<div class="card"><h2>Saídas Hoje</h2><p style="font-size:1.875rem;font-weight:bold" class="text-red-500"><span id="saidasHoje">0</span></p></div>
 </div><div class="card mt-2"><canvas id="graficoMov" height="80"></canvas></div></div>
 
 <div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid md:grid-cols-4 gap-2">
@@ -80,13 +82,15 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 
 <div id="usuarios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO DE USUÁRIOS</h2><input type="hidden" id="uId"><input id="uNome" class="input mb-2" placeholder="Nome"><input id="uLogin" class="input mb-2" placeholder="Login"><input id="uSenha" type="password" class="input mb-2" placeholder="Senha"><select id="uNivel" class="input mb-2"><option value="operador">OPERADOR</option><option value="admin">ADMIN</option></select><button onclick="salvarUsuario()" class="w-full btn bg-indigo-600 text-white">SALVAR USUÁRIO</button></div><div id="listaUsuarios" class="grid gap-2"></div></div>
 
-<div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button onclick="salvarLoja()" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr class="my-3"><button onclick="baixarBackup()" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
+<div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button onclick="salvarLoja()" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr style="margin:12px 0"><button onclick="baixarBackup()" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
 
 <nav class="menu"><button onclick="mostrarAba('dashboard')" id="btn-dashboard" class="on">DASHBOARD</button><button onclick="mostrarAba('produtos')" id="btn-produtos">PRODUTOS</button><button onclick="mostrarAba('movimentacao')" id="btn-movimentacao">MOVIMENTOS</button><button onclick="mostrarAba('relatorios')" id="btn-relatorios">RELATÓRIOS</button><button onclick="mostrarAba('usuarios')" id="btn-usuarios">USUÁRIOS</button><button onclick="mostrarAba('config')" id="btn-config">LOJA</button><button onclick="sair()">SAIR</button></nav>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
+window.logar = function(){let login=document.getElementById('usuarioLogin').value; let senha=document.getElementById('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; document.getElementById('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {document.getElementById('erroLogin').innerText='Usuário ou Senha inválidos!';}}
+
 const firebaseConfig = {
   apiKey: "AIzaSyDgWKzyqkOK3S8cS9ZXngihhEcijKcvPJg",
   authDomain: "marcenaria-657f3.firebaseapp.com",
@@ -101,7 +105,6 @@ let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tip
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
 function alternarTema(){document.body.classList.toggle('dark')}
 function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
-function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
 function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').classList.add('hidden');$('btn-config').classList.add('hidden');}}
 
@@ -117,7 +120,7 @@ function carregarTudo(){
 function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"admin",senha:"1234",nivel:"admin"}); alert("Usuário Admin criado! Login: admin / Senha: 1234")}
 function verificarEstoqueBaixo(){let baixos=produtos.filter(p=>(p.estoque||0)<= (p.estoqueMin||5)); if(baixos.length>0){$('alertaEstoque').classList.remove('hidden'); $('listaAlertaEstoque').innerHTML=baixos.map(p=>`<p>${p.nome}: <b>${p.estoque}</b> un - Mín: ${p.estoqueMin}</p>`).join('');}else{$('alertaEstoque').classList.add('hidden')}}
 
-function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b>${p.nome}</b><br>Cód: ${p.cod}<br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<br>R$${Number(p.preco||0).toFixed(2)}<div class="mt-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white text-sm">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white text-sm">EXCLUIR</button></div></div>`).join('')}
+function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b>${p.nome}</b><br>Cód: ${p.cod}<br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<br>R$${Number(p.preco||0).toFixed(2)}<div class="mt-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
 function salvarProduto(){let data={nome:$('pNome').value,cod:$('pCod').value,custo:toNum($('pCusto').value),preco:toNum($('pPreco').value),estoqueMin:parseInt(toNum($('pEstoqueMin').value))||5,estoque:parseInt(toNum($('pEstoque').value))||0}; if($('pId').value){db.collection("produtos").doc($('pId').value).update(data)}else{db.collection("produtos").add(data)} alert("Salvo!"); $('pId').value='';$('pNome').value='';$('pCod').value='';$('pCusto').value='';$('pPreco').value='';$('pEstoqueMin').value='';$('pEstoque').value='';}
 function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pCusto').value=p.custo;$('pPreco').value=p.preco;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque}
 function excluirProduto(id){if(confirm("Excluir?"))db.collection("produtos").doc(id).delete()}
@@ -132,7 +135,7 @@ function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas");
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}</div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; db.collection("usuarios").add(data); alert("Usuário salvo!"); $('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
-function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('usuarios');}
+function mostrarCadastroUser(){document.getElementById('telaLogin').style.display='none'; mostrarAba('usuarios');}
 
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
