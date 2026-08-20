@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.1</title>
+<title>DND PLANEJADOS - ESTOQUE V1.2</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
-<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
+<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
 
 <div class="p-2 pb-24">
 <div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
@@ -52,45 +52,51 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <input id="pPreco" type="text" inputmode="decimal" class="input" placeholder="Preço R$">
 <input id="pEstoqueMin" type="text" inputmode="numeric" class="input" placeholder="Estoque Mínimo">
 <input id="pEstoque" type="text" inputmode="numeric" class="input" placeholder="Estoque Atual">
-</div><button onclick="salvarProduto()" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid md:grid-cols-2 gap-2"></div></div>
+</div><button id="btnSalvarProd" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid md:grid-cols-2 gap-2"></div></div>
 
 <div id="movimentacao" class="aba"><div class="grid lg:grid-cols-2 gap-2">
 <div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
-<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar" onkeypress="if(event.key=='Enter')addEntrada()">
-<button onclick="iniciarLeitor('entrada')" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
-<button id="btnPararLeitor" onclick="pararLeitor()" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
+<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
+<button id="btnLeitorEntrada" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
+<button id="btnPararLeitor" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
 <div id="leitor" class="mb-2"></div>
 <input id="eQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="eObs" class="input mb-2" placeholder="Observação NF/Fornecedor">
-<button onclick="addEntrada()" class="w-full btn bg-green-600 text-white">LANÇAR ENTRADA</button>
+<button id="btnAddEntrada" class="w-full btn bg-green-600 text-white">LANÇAR ENTRADA</button>
 </div>
 <div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
-<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar" onkeypress="if(event.key=='Enter')addSaida()">
-<button onclick="iniciarLeitor('saida')" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
+<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
+<button id="btnLeitorSaida" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
 <input id="sQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="sObs" class="input mb-2" placeholder="Motivo: Venda, Perda, Uso">
-<button onclick="addSaida()" class="w-full btn bg-red-600 text-white">LANÇAR SAÍDA</button>
+<button id="btnAddSaida" class="w-full btn bg-red-600 text-white">LANÇAR SAÍDA</button>
 </div></div></div>
 
 <div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid md:grid-cols-3 gap-2 mb-2">
 <input id="dataIni" type="date" class="input">
 <input id="dataFim" type="date" class="input">
-<button onclick="relProdutos()" class="btn bg-indigo-600 text-white">ESTOQUE ATUAL</button>
-<button onclick="relEntradas()" class="btn bg-green-600 text-white">ENTRADAS</button>
-<button onclick="relSaidas()" class="btn bg-red-600 text-white">SAÍDAS</button>
+<button id="btnRelProd" class="btn bg-indigo-600 text-white">ESTOQUE ATUAL</button>
+<button id="btnRelEnt" class="btn bg-green-600 text-white">ENTRADAS</button>
+<button id="btnRelSai" class="btn bg-red-600 text-white">SAÍDAS</button>
 </div></div><div id="resultadoRel" class="grid gap-2"></div></div>
 
-<div id="usuarios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO DE USUÁRIOS</h2><input type="hidden" id="uId"><input id="uNome" class="input mb-2" placeholder="Nome"><input id="uLogin" class="input mb-2" placeholder="Login"><input id="uSenha" type="password" class="input mb-2" placeholder="Senha"><select id="uNivel" class="input mb-2"><option value="operador">OPERADOR</option><option value="admin">ADMIN</option></select><button onclick="salvarUsuario()" class="w-full btn bg-indigo-600 text-white">SALVAR USUÁRIO</button></div><div id="listaUsuarios" class="grid gap-2"></div></div>
+<div id="usuarios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO DE USUÁRIOS</h2><input type="hidden" id="uId"><input id="uNome" class="input mb-2" placeholder="Nome"><input id="uLogin" class="input mb-2" placeholder="Login"><input id="uSenha" type="password" class="input mb-2" placeholder="Senha"><select id="uNivel" class="input mb-2"><option value="operador">OPERADOR</option><option value="admin">ADMIN</option></select><button id="btnSalvarUser" class="w-full btn bg-indigo-600 text-white">SALVAR USUÁRIO</button></div><div id="listaUsuarios" class="grid gap-2"></div></div>
 
-<div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button onclick="salvarLoja()" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr style="margin:12px 0"><button onclick="baixarBackup()" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
+<div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button id="btnSalvarLoja" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr style="margin:12px 0"><button id="btnBackup" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
 
-<nav class="menu"><button onclick="mostrarAba('dashboard')" id="btn-dashboard" class="on">DASHBOARD</button><button onclick="mostrarAba('produtos')" id="btn-produtos">PRODUTOS</button><button onclick="mostrarAba('movimentacao')" id="btn-movimentacao">MOVIMENTOS</button><button onclick="mostrarAba('relatorios')" id="btn-relatorios">RELATÓRIOS</button><button onclick="mostrarAba('usuarios')" id="btn-usuarios">USUÁRIOS</button><button onclick="mostrarAba('config')" id="btn-config">LOJA</button><button onclick="sair()">SAIR</button></nav>
+<nav class="menu">
+<button id="btn-dashboard" class="on">DASHBOARD</button>
+<button id="btn-produtos">PRODUTOS</button>
+<button id="btn-movimentacao">MOVIMENTOS</button>
+<button id="btn-relatorios">RELATÓRIOS</button>
+<button id="btn-usuarios">USUÁRIOS</button>
+<button id="btn-config">LOJA</button>
+<button id="btn-sair">SAIR</button>
+</nav>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 <script>
-window.logar = function(){let login=document.getElementById('usuarioLogin').value; let senha=document.getElementById('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; document.getElementById('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {document.getElementById('erroLogin').innerText='Usuário ou Senha inválidos!';}}
-
 const firebaseConfig = {
   apiKey: "AIzaSyDgWKzyqkOK3S8cS9ZXngihhEcijKcvPJg",
   authDomain: "marcenaria-657f3.firebaseapp.com",
@@ -99,19 +105,20 @@ const firebaseConfig = {
   messagingSenderId: "746817920402",
   appId: "1:746817920402:web:f7180f4705eff2f0f3b54b"
 };
-firebase.initializeApp(firebaseConfig); const db = firebase.firestore(); const $=id=>document.getElementById(id);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const $=id=>document.getElementById(id);
 let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
 function alternarTema(){document.body.classList.toggle('dark')}
 function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
+function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
-function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').classList.add('hidden');$('btn-config').classList.add('hidden');}}
+function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').style.display='none';$('btn-config').style.display='none';}}
 
 function carregarTudo(){
-  db.collection("usuarios").get().then(snap=>{
-    if(snap.empty){ criarAdminPadrao(); }
-  });
+  db.collection("usuarios").get().then(snap=>{ if(snap.empty){ criarAdminPadrao(); } });
   db.collection("produtos").onSnapshot(snap=>{produtos=snap.docs.map(d=>({id:d.id,...d.data()})); listarProdutos(); verificarEstoqueBaixo();});
   db.collection("usuarios").onSnapshot(snap=>{usuarios=snap.docs.map(d=>({id:d.id,...d.data()})); listarUsuarios();});
   db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()}));});
@@ -135,14 +142,39 @@ function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas");
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}</div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; db.collection("usuarios").add(data); alert("Usuário salvo!"); $('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
-function mostrarCadastroUser(){document.getElementById('telaLogin').style.display='none'; mostrarAba('usuarios');}
+function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('usuarios');}
 
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
 
 // LEITOR
 function iniciarLeitor(tipo){tipoLeitor=tipo; $('btnPararLeitor').classList.remove('hidden'); const script=document.createElement('script'); script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; script.onload=()=>{html5QrCodeInstance=new Html5Qrcode("leitor"); const onScanSuccess=(codigo)=>{if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo}}; html5QrCodeInstance.start({facingMode:"environment"},{fps:10,formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.CODE_128]},onScanSuccess);}; document.head.appendChild(script);}
-function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCodeInstance){html5QrCodeInstance.stop()}$('leitor').innerHTML='';}
+function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCodeInstance){html5QrCodeInstance.stop().then(()=>{$('leitor').innerHTML=''});}}
+
+// EVENTOS
+document.addEventListener('DOMContentLoaded', ()=>{
+  $('btnEntrar').onclick=logar;
+  $('btnCadastrar').onclick=mostrarCadastroUser;
+  $('btnSalvarProd').onclick=salvarProduto;
+  $('btnAddEntrada').onclick=addEntrada;
+  $('btnAddSaida').onclick=addSaida;
+  $('btnRelProd').onclick=relProdutos;
+  $('btnRelEnt').onclick=relEntradas;
+  $('btnRelSai').onclick=relSaidas;
+  $('btnSalvarUser').onclick=salvarUsuario;
+  $('btnSalvarLoja').onclick=salvarLoja;
+  $('btnBackup').onclick=baixarBackup;
+  $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
+  $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
+  $('btnPararLeitor').onclick=pararLeitor;
+  $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
+  $('btn-produtos').onclick=()=>mostrarAba('produtos');
+  $('btn-movimentacao').onclick=()=>mostrarAba('movimentacao');
+  $('btn-relatorios').onclick=()=>mostrarAba('relatorios');
+  $('btn-usuarios').onclick=()=>mostrarAba('usuarios');
+  $('btn-config').onclick=()=>mostrarAba('config');
+  $('btn-sair').onclick=sair;
+});
 </script>
 </body>
 </html>
