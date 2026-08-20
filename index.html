@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.1</title>
+<title>DND PLANEJADOS - ESTOQUE V2.2</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -22,12 +22,18 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .linha-scan{position:absolute;top:50%;left:5%;width:90%;height:3px;background:#22c55e;box-shadow:0 0 15px #22c55e;animation:scan 1.8s linear infinite;z-index:100;pointer-events:none}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:4px 10px;border-radius:20px;font-size:12px}
-.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-gray-400{color:#94a3b8}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
 .tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border)}
 .tab-btn{padding:12px;flex:1;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:15px;font-weight:bold}
 .tab-btn.ativa{border-bottom:3px solid var(--primary)}
 .subaba{display:none}.subaba.ativa{display:block}
 .mov-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:15px}
+@media print{.menu,.topo,.btn,.tabs{display:none}body{background:white;color:black}.card{border:1px solid #000;page-break-inside:avoid}}
+@media(min-width:768px){
+.menu{grid-template-columns:repeat(7, 1fr)}
+.menu button{font-size:12px;flex-direction:row}
+.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -174,8 +180,30 @@ function carregarDashboard(){
   if(Object.keys(grupoSaidas).length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'} else {$('listaSaidasHoje').innerHTML = Object.keys(grupoSaidas).map(nome=>`<div class="mov-item"><span>${nome}</span><span class="text-red-500">-${grupoSaidas[nome]}</span></div>`).join('')}
 }
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
-function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
-function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs}</div>`).join('')||'<p>Nenhuma saída</p>'}
+function relEntradas(){
+  if(!$('dataIni').value) return alert("Selecione as datas");
+  let ini=new Date($('dataIni').value);
+  let fim=new Date($('dataFim').value+'T23:59:59');
+  let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
+  $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS</h2>`+
+  dados.map(d=>`<div class="card">
+    <b>${d.produto}</b> <span class="text-green-500">+${d.qtd} un</span><br>
+    <span style="font-size:14px">Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br>
+    <span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span>
+  </div>`).join('')||'<p>Nenhuma entrada</p>'
+}
+function relSaidas(){
+  if(!$('dataIni').value) return alert("Selecione as datas");
+  let ini=new Date($('dataIni').value);
+  let fim=new Date($('dataFim').value+'T23:59:59');
+  let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
+  $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS</h2>`+
+  dados.map(d=>`<div class="card">
+    <b>${d.produto}</b> <span class="text-red-500">-${d.qtd} un</span><br>
+    <span style="font-size:14px">Motivo: ${d.obs||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br>
+    <span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span>
+  </div>`).join('')||'<p>Nenhuma saída</p>'
+}
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br><span style="font-size:14px">Login: ${u.login} | ${u.nivel}</span><div class="mt-2 grid gap-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; if($('uId').value){db.collection("usuarios").doc($('uId').value).update(data)}else{db.collection("usuarios").add(data)} alert("Salvo!"); $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
@@ -186,36 +214,24 @@ function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
 
-// LEITOR CORRIGIDO
+// LEITOR
 function iniciarLeitor(tipo){
-  tipoLeitor=tipo;
-  ultimoCodigo = '';
+  tipoLeitor=tipo; ultimoCodigo = '';
   let divLeitor = tipo=='entrada'? $('leitorEntrada') : $('leitorSaida');
   let btnParar = tipo=='entrada'? $('btnPararLeitorEntrada') : $('btnPararLeitorSaida');
-  divLeitor.classList.remove('hidden');
-  btnParar.classList.remove('hidden');
+  divLeitor.classList.remove('hidden'); btnParar.classList.remove('hidden');
   divLeitor.innerHTML = '<div class="linha-scan"></div>';
-
   const script=document.createElement('script');
   script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   script.onload=()=>{
     html5QrCodeInstance=new Html5Qrcode(divLeitor.id, {formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.CODE_128]});
     const onScanSuccess=(codigo)=>{
-      // Anti duplicidade: só aceita se for diferente do último
-      if(codigo === ultimoCodigo) return;
-      ultimoCodigo = codigo;
+      if(codigo === ultimoCodigo) return; ultimoCodigo = codigo;
       if(confirm(`Código lido: ${codigo}\n\nUsar este código?`)){
-        if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo};
-        pararLeitor(tipo);
-      } else {
-        ultimoCodigo = ''; // reseta pra poder ler de novo
-      }
+        if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo}; pararLeitor(tipo);
+      } else { ultimoCodigo = ''; }
     };
-    html5QrCodeInstance.start(
-      {facingMode:"environment"},
-      {fps:5, qrbox:{width:250, height:80}, disableFlip:false}, // fps baixo = mais preciso
-      onScanSuccess
-    ).catch(err=>alert("Erro ao abrir câmera: "+err));
+    html5QrCodeInstance.start({facingMode:"environment"},{fps:5, qrbox:{width:250, height:80}, disableFlip:false},onScanSuccess).catch(err=>alert("Erro ao abrir câmera: "+err));
   };
   document.head.appendChild(script);
 }
@@ -224,10 +240,7 @@ function pararLeitor(tipo){
   let btnParar = tipo=='entrada'? $('btnPararLeitorEntrada') : $('btnPararLeitorSaida');
   btnParar.classList.add('hidden');
   if(html5QrCodeInstance){
-    html5QrCodeInstance.stop().then(()=>{
-      divLeitor.classList.add('hidden');
-      divLeitor.innerHTML='<div class="linha-scan"></div>';
-    }).catch(()=>{});
+    html5QrCodeInstance.stop().then(()=>{divLeitor.classList.add('hidden'); divLeitor.innerHTML='<div class="linha-scan"></div>';}).catch(()=>{});
   }
 }
 
