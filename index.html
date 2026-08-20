@@ -2,9 +2,41 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V3.1</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+<title>DND PLANEJADOS - ESTOQUE V3.2</title>
 <style>
+:root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:100px;margin:0;font-size:16px}
+.btn{padding:14px 16px;border-radius:10px;font-weight:bold;cursor:pointer;border:none;font-size:16px;min-height:48px}
+.input{padding:14px;border:1px solid var(--border);border-radius:10px;width:100%;background:var(--card);color:var(--text);font-size:16px}
+.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.3);border:1px solid var(--border)}
+.aba{display:none}.ativa{display:block}
+.menu{display:grid;grid-template-columns:repeat(4, 1fr);position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
+.menu button{padding:8px 2px;font-size:10px;font-weight:bold;background:transparent;color:var(--text);border:none;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:60px}
+.menu button.on{background:var(--primary);color:white}
+.hidden{display:none}
+.topo{position:sticky;top:0;z-index:20;padding:10px;background:var(--bg)}
+.btn-topo{padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-weight:bold;color:var(--text);font-size:15px;width:100%;text-align:center}
+#alertaEstoqueFixo{position:sticky;top:60px;z-index:19;margin:0 10px 10px 10px;animation:piscar 1.5s infinite}
+@keyframes piscar{0%,100%{opacity:1}50%{opacity:0.6}}
+#leitorEntrada,#leitorSaida{width:100%;height:250px;border:2px dashed var(--border);border-radius:10px;position:relative;overflow:hidden;background:#000}
+#leitorEntrada video,#leitorSaida video{width:100%!important;height:100%!important;object-fit:cover}
+.linha-scan{position:absolute;top:50%;left:5%;width:90%;height:3px;background:#22c55e;box-shadow:0 0 15px #22c55e;animation:scan 1.8s linear infinite;z-index:100;pointer-events:none}
+@keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
+.badge{background:var(--primary);color:white;padding:4px 10px;border-radius:20px;font-size:12px}
+.badge-danger{background:#ef4444}
+.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-gray-400{color:#94a3b8}.text-gray-500{color:#64748b}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+.tab-btn{padding:12px;flex:1;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:15px;font-weight:bold}
+.tab-btn.ativa{border-bottom:3px solid var(--primary)}
+.subaba{display:none}.subaba.ativa{display:block}
+.mov-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:15px}
+.lista-busca{max-height:200px;overflow-y:auto;margin-top:5px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+.item-busca{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
+.item-busca:active{background:var(--primary)}
+.assinatura{font-size:10px;color:#64748b;text-align:center;margin-top:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:60}
+</style>
 </head>
 <body>
 
@@ -170,7 +202,6 @@ function salvarProduto(){let data={nome:$('pNome').value,cod:$('pCod').value,est
 function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque; window.scrollTo(0,0)}
 function excluirProduto(id){if(confirm("Excluir produto?"))db.collection("produtos").doc(id).delete()}
 
-// BUSCA POR NOME
 function buscarProduto(termo, tipo){
   let lista = tipo=='entrada'? $('listaBuscaEntrada') : $('listaBuscaSaida');
   if(termo.length < 2){ lista.classList.add('hidden'); return; }
@@ -223,7 +254,7 @@ function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div cla
 function mostrarCadastroUser(){
   $('telaLogin').style.display='none';
   mostrarAba('usuarios');
-  $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+  limparFormUsuario();
   $('btnSalvarUser').innerText = 'SALVAR USUÁRIO';
 }
 
@@ -235,12 +266,12 @@ function salvarUsuario(){
     return alert("Preencha Nome, Login e Senha!");
   }
 
-  if(editando){ // EDITAR - SALVA DIRETO SEM PEDIR SENHA
+  if(editando){
     db.collection("usuarios").doc(editando).update(data).then(()=>{
       alert("Usuário atualizado!");
       limparFormUsuario();
     }).catch(e=>alert("Erro: "+e.message));
-  } else { // CRIAR NOVO - PEDE SENHA DO ADMIN
+  } else {
     dadosNovoUsuario = {...data};
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
@@ -287,7 +318,6 @@ function excluirUsuario(id){if(confirm("Excluir usuário?"))db.collection("usuar
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
 
-// LEITOR
 function iniciarLeitor(tipo){
   tipoLeitor=tipo; ultimoCodigo = '';
   let divLeitor = tipo=='entrada'? $('leitorEntrada') : $('leitorSaida');
@@ -317,7 +347,6 @@ function pararLeitor(tipo){
   }
 }
 
-// EVENTOS
 document.addEventListener('DOMContentLoaded', ()=>{
   $('btnEntrar').onclick=logar;
   $('btnCadastrar').onclick=mostrarCadastroUser;
@@ -333,7 +362,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnBackup').onclick=baixarBackup;
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
-  $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
+ ('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
   $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
   $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
