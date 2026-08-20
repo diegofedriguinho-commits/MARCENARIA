@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DND PLANEJADOS - ESTOQUE V1.0</title>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
 body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:90px}
-.btn{padding:10px 14px;border-radius:8px;font-weight:bold;cursor:pointer}
-.input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:var(--card);color:var(--text)}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:90px;margin:0}
+.btn{padding:10px 14px;border-radius:8px;font-weight:bold;cursor:pointer;border:none}
+.input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:var(--card);color:var(--text);box-sizing:border-box}
 .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid var(--border)}
 .aba{display:none}.ativa{display:block}
 .menu{display:grid;grid-template-columns:repeat(auto-fit, minmax(90px, 1fr));position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
-.menu button{padding:10px 4px;font-size:11px;font-weight:bold;background:transparent;color:var(--text)}
+.menu button{padding:10px 4px;font-size:11px;font-weight:bold;background:transparent;color:var(--text);border:none}
 .menu button.on{background:var(--primary);color:white}
 .hidden{display:none}
 .topo{position:fixed;top:10px;right:10px;z-index:20;display:flex;gap:8px}
@@ -23,6 +22,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 #leitor::after{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:5}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:2px 8px;border-radius:20px;font-size:10px}
+.grid{display:grid}.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}.gap-2{gap:8px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}.p-2{padding:8px}.pb-24{padding-bottom:96px}.w-full{width:100%}.text-center{text-align:center}.text-2xl{font-size:1.5rem}.text-3xl{font-size:1.875rem}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-red-400{color:#f87171}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
 </style>
 </head>
 <body>
@@ -32,10 +32,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
-<div id="telaLogin" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"><div class="card w-80 text-center"><h2 class="text-2xl font-bold mb-2">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 text-sm mt-2"></p></div></div>
+<div id="telaLogin" class="fixed" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-2xl font-bold mb-2 text-center">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 text-sm mt-2"></p></div></div>
 
 <div class="p-2 pb-24">
-<div id="alertaEstoque" class="card bg-red-900 border-l-4 border-red-500 mb-2 hidden"><h2 class="font-bold text-red-400">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
+<div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold text-red-400">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
 
 <div id="dashboard" class="aba ativa"><div class="grid md:grid-cols-3 gap-2">
 <div class="card"><h2 class="text-sm">Total Produtos</h2><p class="text-3xl font-bold"><span id="totalProdutos">0</span></p></div>
@@ -101,7 +101,7 @@ let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tip
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
 function alternarTema(){document.body.classList.toggle('dark')}
 function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
-function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').classList.add('hidden'); verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
+function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
 function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').classList.add('hidden');$('btn-config').classList.add('hidden');}}
 
@@ -125,14 +125,14 @@ function excluirProduto(id){if(confirm("Excluir?"))db.collection("produtos").doc
 function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').value)); let obs=$('eObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); let novoEstoque=(prod.estoque||0)+qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'entrada',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Entrada lançada!"); $('eCod').value='';$('eQtd').value='';$('eObs').value='';}
 function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
 
-function carregarDashboard(){let valorEstoque=produtos.reduce((a,p)=>a+((p.estoque||0)*(p.custo||0)),0); let hoje=new Date().toLocaleDateString(); let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0); $('totalProdutos').innerText=produtos.length; $('valorEstoque').innerText=valorEstoque.toFixed(2); $('saidasHoje').innerText=saidasHoje; const ctx=document.getElementById('graficoMov'); if(graficoMov) graficoMov.destroy(); graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]}})
+function carregarDashboard(){let valorEstoque=produtos.reduce((a,p)=>a+((p.estoque||0)*(p.custo||0)),0); let hoje=new Date().toLocaleDateString(); let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0); $('totalProdutos').innerText=produtos.length; $('valorEstoque').innerText=valorEstoque.toFixed(2); $('saidasHoje').innerText=saidasHoje; const ctx=document.getElementById('graficoMov'); if(graficoMov) graficoMov.destroy(); graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]})}
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Custo: R$${p.custo} | Total: R$${((p.estoque||0)*(p.custo||0)).toFixed(2)}</div>`).join('')}
 function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">ENTRADAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
 function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">SAÍDAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}</div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; db.collection("usuarios").add(data); alert("Usuário salvo!"); $('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
-function mostrarCadastroUser(){$('telaLogin').classList.add('hidden'); mostrarAba('usuarios');}
+function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('usuarios');}
 
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
