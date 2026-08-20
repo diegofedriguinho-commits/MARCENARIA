@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.8</title>
+<title>DND PLANEJADOS - ESTOQUE V2.9</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -265,13 +265,13 @@ function salvarUsuario(){
     return alert("Preencha Nome, Login e Senha!");
   }
 
-  if($('uId').value){
+  if($('uId').value){ // EDITAR
     db.collection("usuarios").doc($('uId').value).update(data).then(()=>{
       alert("Usuário atualizado!");
       $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
-    });
-  } else {
-    dadosNovoUsuario = data;
+    }).catch(e=>alert("Erro: "+e.message));
+  } else { // CRIAR NOVO
+    dadosNovoUsuario = {...data};
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
     $('erroSenhaAdmin').innerText='';
@@ -279,15 +279,19 @@ function salvarUsuario(){
 }
 
 function confirmarSenhaAdmin(){
+  if(!dadosNovoUsuario) return fecharModalAdmin();
+
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
 
-  if(admin && admin.senha == senhaDigitada){
+  if(!admin) return alert("Nenhum admin cadastrado!");
+
+  if(admin.senha == senhaDigitada){
     db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
       alert("Usuário criado com sucesso!");
       fecharModalAdmin();
       $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
-    }).catch(e=>alert("Erro: "+e));
+    }).catch(e=>alert("Erro ao salvar: "+e.message));
   } else {
     $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
   }
@@ -352,10 +356,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
   $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
   $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
-  $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
+$('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
-$('btn-produtos').onclick=()=>mostrarAba('produtos');
+  $('btn-produtos').onclick=()=>mostrarAba('produtos');
   $('btn-movimentacao').onclick=()=>mostrarAba('movimentacao');
   $('btn-relatorios').onclick=()=>mostrarAba('relatorios');
   $('btn-usuarios').onclick=()=>mostrarAba('usuarios');
