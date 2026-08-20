@@ -2,27 +2,31 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.5</title>
+<title>DND PLANEJADOS - ESTOQUE V1.6</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
-:root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
-body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155}
+:root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:90px;margin:0}
 .btn{padding:10px 14px;border-radius:8px;font-weight:bold;cursor:pointer;border:none}
 .input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:var(--card);color:var(--text);box-sizing:border-box}
-.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid var(--border)}
+.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.3);border:1px solid var(--border)}
 .aba{display:none}.ativa{display:block}
 .menu{display:grid;grid-template-columns:repeat(auto-fit, minmax(90px, 1fr));position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
 .menu button{padding:10px 4px;font-size:11px;font-weight:bold;background:transparent;color:var(--text);border:none}
 .menu button.on{background:var(--primary);color:white}
 .hidden{display:none}
 .topo{position:fixed;top:10px;right:10px;z-index:20;display:flex;gap:8px}
-.btn-topo{padding:8px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-weight:bold;cursor:pointer}
+.btn-topo{padding:8px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-weight:bold;color:var(--text)}
 #leitor{width:100%;height:220px;border:2px dashed var(--border);border-radius:8px;position:relative;overflow:hidden;background:#000}
 #leitor::after{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:5}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:2px 8px;border-radius:20px;font-size:10px}
 .grid{display:grid}.gap-2{gap:8px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}.p-2{padding:8px}.pb-24{padding-bottom:96px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.tabs{display:flex;gap:4px;margin-bottom:8px;border-bottom:1px solid var(--border)}
+.tab-btn{padding:8px 12px;background:transparent;border:none;color:var(--text);cursor:pointer}
+.tab-btn.ativa{border-bottom:2px solid var(--primary);font-weight:bold}
+.subaba{display:none}.subaba.ativa{display:block}
+@media print{.menu,.topo,.btn,.tabs{display:none}body{background:white;color:black}.card{border:1px solid #000;page-break-inside:avoid}}
 @media(min-width:768px){.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1024px){.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -30,7 +34,6 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <body>
 
 <div class="topo">
-<button id="btnTema" class="btn-topo">🌙 TEMA</button>
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
@@ -39,9 +42,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div class="p-2 pb-24">
 <div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
 
-<div id="dashboard" class="aba ativa"><div class="grid md:grid-cols-2 gap-2">
-<div class="card"><h2>Total Produtos</h2><p style="font-size:1.875rem;font-weight:bold"><span id="totalProdutos">0</span></p></div>
-<div class="card"><h2>Saídas Hoje</h2><p style="font-size:1.875rem;font-weight:bold" class="text-red-500"><span id="saidasHoje">0</span></p></div>
+<div id="dashboard" class="aba ativa"><div class="card mb-2"><h2 class="font-bold mb-2">FILTRO DASHBOARD</h2><div class="grid md:grid-cols-3 gap-2">
+<input id="dashIni" type="date" class="input">
+<input id="dashFim" type="date" class="input">
+<button id="btnCarregarDash" class="btn bg-indigo-600 text-white">CARREGAR</button>
+</div></div>
+<div class="grid md:grid-cols-2 gap-2">
+<div class="card"><h2>Entradas no Período</h2><p style="font-size:1.875rem;font-weight:bold" class="text-green-500"><span id="dashEntradas">0</span></p></div>
+<div class="card"><h2>Saídas no Período</h2><p style="font-size:1.875rem;font-weight:bold" class="text-red-500"><span id="dashSaidas">0</span></p></div>
 </div><div class="card mt-2"><canvas id="graficoMov" height="80"></canvas></div></div>
 
 <div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid md:grid-cols-3 gap-2">
@@ -51,8 +59,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <input id="pEstoque" type="text" inputmode="numeric" class="input" placeholder="Estoque Atual">
 </div><button id="btnSalvarProd" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid md:grid-cols-2 gap-2"></div></div>
 
-<div id="movimentacao" class="aba"><div class="grid lg:grid-cols-2 gap-2">
-<!-- SAIDA FICOU EM CIMA -->
+<div id="movimentacao" class="aba">
+<div class="tabs">
+<button id="tab-saida" class="tab-btn ativa">SAÍDA</button>
+<button id="tab-entrada" class="tab-btn">ENTRADA</button>
+</div>
+<div id="sub-saida" class="subaba ativa">
 <div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
 <input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
 <button id="btnLeitorSaida" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
@@ -60,7 +72,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <input id="sObs" class="input mb-2" placeholder="Motivo: Venda, Perda, Uso">
 <button id="btnAddSaida" class="w-full btn bg-red-600 text-white">LANÇAR SAÍDA</button>
 </div>
-<!-- ENTRADA COM CAMPO DOCUMENTO -->
+</div>
+<div id="sub-entrada" class="subaba">
 <div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
 <input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
 <button id="btnLeitorEntrada" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
@@ -70,14 +83,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <input id="eDoc" class="input mb-2" placeholder="Nº Documento / NF">
 <input id="eObs" class="input mb-2" placeholder="Observação / Fornecedor">
 <button id="btnAddEntrada" class="w-full btn bg-green-600 text-white">LANÇAR ENTRADA</button>
-</div></div></div>
+</div>
+</div>
+</div>
 
-<div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid md:grid-cols-3 gap-2 mb-2">
+<div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid md:grid-cols-4 gap-2 mb-2">
 <input id="dataIni" type="date" class="input">
 <input id="dataFim" type="date" class="input">
 <button id="btnRelProd" class="btn bg-indigo-600 text-white">ESTOQUE ATUAL</button>
 <button id="btnRelEnt" class="btn bg-green-600 text-white">ENTRADAS</button>
 <button id="btnRelSai" class="btn bg-red-600 text-white">SAÍDAS</button>
+<button onclick="window.print()" class="btn bg-gray-600 text-white">🖨️ IMPRIMIR</button>
 </div></div><div id="resultadoRel" class="grid gap-2"></div></div>
 
 <div id="usuarios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO DE USUÁRIOS</h2><input type="hidden" id="uId"><input id="uNome" class="input mb-2" placeholder="Nome"><input id="uLogin" class="input mb-2" placeholder="Login"><input id="uSenha" type="password" class="input mb-2" placeholder="Senha"><select id="uNivel" class="input mb-2"><option value="operador">OPERADOR</option><option value="admin">ADMIN</option></select><button id="btnSalvarUser" class="w-full btn bg-indigo-600 text-white">SALVAR USUÁRIO</button></div><div id="listaUsuarios" class="grid gap-2"></div></div>
@@ -111,8 +127,8 @@ const $=id=>document.getElementById(id);
 let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null, usuariosCarregados=false;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
-function alternarTema(){document.body.classList.toggle('dark')}
-function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
+function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on');}
+function mostrarSubAba(id){document.querySelectorAll('.subaba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('ativa'));$(`tab-${id.split('-')[1]}`).classList.add('ativa');}
 function logar(){if(!usuariosCarregados) return alert("Aguarde carregar os usuários..."); let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
 function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').style.display='none';$('btn-config').style.display='none';}}
@@ -120,7 +136,7 @@ function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios'
 function carregarTudo(){
   db.collection("produtos").onSnapshot(snap=>{produtos=snap.docs.map(d=>({id:d.id,...d.data()})); listarProdutos(); verificarEstoqueBaixo();});
   db.collection("usuarios").onSnapshot(snap=>{
-    usuarios=snap.docs.map(d=>({id:d.id,...d.data()})); 
+    usuarios=snap.docs.map(d=>({id:d.id,...d.data()}));
     listarUsuarios();
     if(!usuariosCarregados){
       usuariosCarregados=true;
@@ -147,17 +163,19 @@ function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').
 function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
 
 function carregarDashboard(){
-  let hoje=new Date().toLocaleDateString();
-  let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0);
-  $('totalProdutos').innerText=produtos.length;
-  $('saidasHoje').innerText=saidasHoje;
+  if(!$('dashIni').value) return alert("Selecione as datas do Dashboard");
+  let ini=new Date($('dashIni').value); let fim=new Date($('dashFim').value+'T23:59:59');
+  let entradas=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
+  let saidas=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
+  $('dashEntradas').innerText=entradas.reduce((a,b)=>a+b.qtd,0);
+  $('dashSaidas').innerText=saidas.reduce((a,b)=>a+b.qtd,0);
   const ctx=document.getElementById('graficoMov');
   if(graficoMov) graficoMov.destroy();
-  graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]}});
+  graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[entradas.length,saidas.length],backgroundColor:['#22c55e','#ef4444']}]}});
 }
-function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
-function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">ENTRADAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
-function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">SAÍDAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
+function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
+function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS - ${ini.toLocaleDateString()} a ${fim.toLocaleDateString()}</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
+function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS - ${ini.toLocaleDateString()} a ${fim.toLocaleDateString()}</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}<div class="mt-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; if($('uId').value){db.collection("usuarios").doc($('uId').value).update(data)}else{db.collection("usuarios").add(data)} alert("Salvo!"); $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
@@ -174,7 +192,6 @@ function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCo
 
 // EVENTOS
 document.addEventListener('DOMContentLoaded', ()=>{
-  $('btnTema').onclick=alternarTema;
   $('btnEntrar').onclick=logar;
   $('btnCadastrar').onclick=mostrarCadastroUser;
   $('btnSalvarProd').onclick=salvarProduto;
@@ -189,6 +206,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
   $('btnPararLeitor').onclick=pararLeitor;
+  $('btnCarregarDash').onclick=carregarDashboard;
+  $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
+  $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
   $('btn-produtos').onclick=()=>mostrarAba('produtos');
   $('btn-movimentacao').onclick=()=>mostrarAba('movimentacao');
