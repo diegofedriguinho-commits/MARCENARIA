@@ -1,35 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.7</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DND PLANEJADOS - ESTOQUE V1.9</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:90px;margin:0}
-.btn{padding:10px 14px;border-radius:8px;font-weight:bold;cursor:pointer;border:none}
-.input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:var(--card);color:var(--text);box-sizing:border-box}
-.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.3);border:1px solid var(--border)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:100px;margin:0;font-size:16px}
+.btn{padding:14px 16px;border-radius:10px;font-weight:bold;cursor:pointer;border:none;font-size:16px;min-height:48px}
+.input{padding:14px;border:1px solid var(--border);border-radius:10px;width:100%;background:var(--card);color:var(--text);font-size:16px}
+.card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.3);border:1px solid var(--border)}
 .aba{display:none}.ativa{display:block}
-.menu{display:grid;grid-template-columns:repeat(auto-fit, minmax(90px, 1fr));position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
-.menu button{padding:10px 4px;font-size:11px;font-weight:bold;background:transparent;color:var(--text);border:none}
+.menu{display:grid;grid-template-columns:repeat(4, 1fr);position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
+.menu button{padding:8px 2px;font-size:10px;font-weight:bold;background:transparent;color:var(--text);border:none;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:60px}
 .menu button.on{background:var(--primary);color:white}
 .hidden{display:none}
-.topo{position:fixed;top:10px;right:10px;z-index:20;display:flex;gap:8px}
-.btn-topo{padding:8px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-weight:bold;color:var(--text)}
-#leitor{width:100%;height:220px;border:2px dashed var(--border);border-radius:8px;position:relative;overflow:hidden;background:#000}
-#leitor::after{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:5}
+.topo{position:sticky;top:0;z-index:20;padding:10px;background:var(--bg)}
+.btn-topo{padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-weight:bold;color:var(--text);font-size:15px;width:100%;text-align:center}
+#leitor{width:100%;height:250px;border:2px dashed var(--border);border-radius:10px;position:relative;overflow:hidden;background:#000}
+.linha-scan{position:absolute;top:50%;left:5%;width:90%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:100;pointer-events:none}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
-.badge{background:var(--primary);color:white;padding:2px 8px;border-radius:20px;font-size:10px}
-.grid{display:grid}.gap-2{gap:8px}.mb-2{margin-bottom:8px}.mt-2{margin-top:8px}.p-2{padding:8px}.pb-24{padding-bottom:96px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
-.tabs{display:flex;gap:4px;margin-bottom:8px;border-bottom:1px solid var(--border)}
-.tab-btn{padding:8px 12px;background:transparent;border:none;color:var(--text);cursor:pointer}
-.tab-btn.ativa{border-bottom:2px solid var(--primary);font-weight:bold}
+.badge{background:var(--primary);color:white;padding:4px 10px;border-radius:20px;font-size:12px}
+.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+.tab-btn{padding:12px;flex:1;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:15px;font-weight:bold}
+.tab-btn.ativa{border-bottom:3px solid var(--primary)}
 .subaba{display:none}.subaba.ativa{display:block}
-.mov-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)}
+.mov-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:15px}
 @media print{.menu,.topo,.btn,.tabs{display:none}body{background:white;color:black}.card{border:1px solid #000;page-break-inside:avoid}}
-@media(min-width:768px){.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
-@media(min-width:1024px){.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:768px){
+.menu{grid-template-columns:repeat(7, 1fr)}
+.menu button{font-size:12px;flex-direction:row}
+.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}
+}
 </style>
 </head>
 <body>
@@ -38,10 +42,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
-<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:12px;color:#888">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
+<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px"><div class="card" style="width:100%;max-width:380px"><h2 class="text-center font-bold" style="font-size:1.6rem;margin-bottom:12px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:13px;color:#888;text-align:center">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2 text-center"></p></div></div>
 
 <div class="p-2 pb-24">
-<div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
+<div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171;font-size:16px">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque" style="font-size:14px"></div></div>
 
 <div id="dashboard" class="aba ativa">
 <div class="card mb-2"><h2 class="font-bold">📊 MOVIMENTAÇÕES DE HOJE - <span id="dataHoje"></span></h2></div>
@@ -51,12 +55,12 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 </div>
 
-<div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid md:grid-cols-3 gap-2">
+<div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid gap-2">
 <input id="pNome" class="input" placeholder="Nome do Produto">
 <input id="pCod" class="input" placeholder="Código de Barras">
 <input id="pEstoqueMin" type="text" inputmode="numeric" class="input" placeholder="Estoque Mínimo">
 <input id="pEstoque" type="text" inputmode="numeric" class="input" placeholder="Estoque Atual">
-</div><button id="btnSalvarProd" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid md:grid-cols-2 gap-2"></div></div>
+</div><button id="btnSalvarProd" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid gap-2"></div></div>
 
 <div id="movimentacao" class="aba">
 <div class="tabs">
@@ -65,7 +69,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 <div id="sub-saida" class="subaba ativa">
 <div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
-<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
+<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
 <button id="btnLeitorSaida" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
 <input id="sQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="sObs" class="input mb-2" placeholder="Motivo: Venda, Perda, Uso">
@@ -74,10 +78,10 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 <div id="sub-entrada" class="subaba">
 <div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
-<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar">
+<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
 <button id="btnLeitorEntrada" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
 <button id="btnPararLeitor" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
-<div id="leitor" class="mb-2"></div>
+<div id="leitor" class="mb-2"><div class="linha-scan"></div></div>
 <input id="eQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="eDoc" class="input mb-2" placeholder="Nº Documento / NF">
 <input id="eObs" class="input mb-2" placeholder="Observação / Fornecedor">
@@ -86,7 +90,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 </div>
 
-<div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid md:grid-cols-4 gap-2 mb-2">
+<div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid gap-2 mb-2">
 <input id="dataIni" type="date" class="input">
 <input id="dataFim" type="date" class="input">
 <button id="btnRelProd" class="btn bg-indigo-600 text-white">ESTOQUE ATUAL</button>
@@ -100,13 +104,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button id="btnSalvarLoja" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr style="margin:12px 0"><button id="btnBackup" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
 
 <nav class="menu">
-<button id="btn-dashboard" class="on">DASHBOARD</button>
-<button id="btn-produtos">PRODUTOS</button>
-<button id="btn-movimentacao">MOVIMENTOS</button>
-<button id="btn-relatorios">RELATÓRIOS</button>
-<button id="btn-usuarios">USUÁRIOS</button>
-<button id="btn-config">LOJA</button>
-<button id="btn-sair">SAIR</button>
+<button id="btn-dashboard" class="on">🏠<span>HOME</span></button>
+<button id="btn-produtos">📦<span>PRODUTOS</span></button>
+<button id="btn-movimentacao">🔄<span>MOV</span></button>
+<button id="btn-relatorios">📊<span>RELAT</span></button>
+<button id="btn-usuarios">👤<span>USERS</span></button>
+<button id="btn-config">⚙️<span>LOJA</span></button>
+<button id="btn-sair">🚪<span>SAIR</span></button>
 </nav>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -126,7 +130,7 @@ const $=id=>document.getElementById(id);
 let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', html5QrCodeInstance=null, usuariosCarregados=false;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
-function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
+function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard(); window.scrollTo(0,0)}
 function mostrarSubAba(id){document.querySelectorAll('.subaba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('ativa'));$(`tab-${id.split('-')[1]}`).classList.add('ativa');}
 function logar(){if(!usuariosCarregados) return alert("Aguarde carregar os usuários..."); let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
@@ -153,9 +157,9 @@ function carregarTudo(){
 function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"admin",senha:"1234",nivel:"admin"}); alert("Usuário Admin criado! Login: admin / Senha: 1234")}
 function verificarEstoqueBaixo(){let baixos=produtos.filter(p=>(p.estoque||0)<= (p.estoqueMin||5)); if(baixos.length>0){$('alertaEstoque').classList.remove('hidden'); $('listaAlertaEstoque').innerHTML=baixos.map(p=>`<p>${p.nome}: <b>${p.estoque}</b> un - Mín: ${p.estoqueMin}</p>`).join('');}else{$('alertaEstoque').classList.add('hidden')}}
 
-function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b>${p.nome}</b><br>Cód: ${p.cod}<br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<div class="mt-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
+function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b style="font-size:16px">${p.nome}</b><br><span style="font-size:14px">Cód: ${p.cod}</span><br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<div class="mt-2 grid gap-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
 function salvarProduto(){let data={nome:$('pNome').value,cod:$('pCod').value,estoqueMin:parseInt(toNum($('pEstoqueMin').value))||5,estoque:parseInt(toNum($('pEstoque').value))||0}; if($('pId').value){db.collection("produtos").doc($('pId').value).update(data)}else{db.collection("produtos").add(data)} alert("Salvo!"); $('pId').value='';$('pNome').value='';$('pCod').value='';$('pEstoqueMin').value='';$('pEstoque').value='';}
-function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque}
+function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque; window.scrollTo(0,0)}
 function excluirProduto(id){if(confirm("Excluir produto?"))db.collection("produtos").doc(id).delete()}
 
 function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').value)); let doc=$('eDoc').value; let obs=$('eObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); let novoEstoque=(prod.estoque||0)+qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'entrada',produtoId:prod.id,produto:prod.nome,qtd,documento:doc,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Entrada lançada!"); $('eCod').value='';$('eQtd').value='';$('eDoc').value='';$('eObs').value='';}
@@ -164,27 +168,18 @@ function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').va
 function carregarDashboard(){
   let hoje = new Date().toLocaleDateString();
   $('dataHoje').innerText = hoje;
-
   let entradasHoje = movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
   let saidasHoje = movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
-
-  if(entradasHoje.length==0){$('listaEntradasHoje').innerHTML='<p>Nenhuma entrada hoje</p>'}
-  else {
-    $('listaEntradasHoje').innerHTML = entradasHoje.map(e=>`<div class="mov-item"><span>${e.produto}</span><span class="text-green-500">+${e.qtd} un</span></div>`).join('')
-  }
-
-  if(saidasHoje.length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'}
-  else {
-    $('listaSaidasHoje').innerHTML = saidasHoje.map(s=>`<div class="mov-item"><span>${s.produto}</span><span class="text-red-500">-${s.qtd} un</span></div>`).join('')
-  }
+  if(entradasHoje.length==0){$('listaEntradasHoje').innerHTML='<p>Nenhuma entrada hoje</p>'} else {$('listaEntradasHoje').innerHTML = entradasHoje.map(e=>`<div class="mov-item"><span>${e.produto}</span><span class="text-green-500">+${e.qtd}</span></div>`).join('')}
+  if(saidasHoje.length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'} else {$('listaSaidasHoje').innerHTML = saidasHoje.map(s=>`<div class="mov-item"><span>${s.produto}</span><span class="text-red-500">-${s.qtd}</span></div>`).join('')}
 }
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
-function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS - ${ini.toLocaleDateString()} a ${fim.toLocaleDateString()}</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
-function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS - ${ini.toLocaleDateString()} a ${fim.toLocaleDateString()}</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
+function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
+function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs}</div>`).join('')||'<p>Nenhuma saída</p>'}
 
-function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}<div class="mt-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
+function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br><span style="font-size:14px">Login: ${u.login} | ${u.nivel}</span><div class="mt-2 grid gap-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
 function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; if($('uId').value){db.collection("usuarios").doc($('uId').value).update(data)}else{db.collection("usuarios").add(data)} alert("Salvo!"); $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
-function editarUsuario(id){let u=usuarios.find(x=>x.id==id);$('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel}
+function editarUsuario(id){let u=usuarios.find(x=>x.id==id);$('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel; window.scrollTo(0,0)}
 function excluirUsuario(id){if(confirm("Excluir usuário?"))db.collection("usuarios").doc(id).delete()}
 function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('usuarios');}
 
@@ -192,8 +187,34 @@ function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lE
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
 
 // LEITOR
-function iniciarLeitor(tipo){tipoLeitor=tipo; $('btnPararLeitor').classList.remove('hidden'); const script=document.createElement('script'); script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; script.onload=()=>{html5QrCodeInstance=new Html5Qrcode("leitor"); const onScanSuccess=(codigo)=>{if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo}}; html5QrCodeInstance.start({facingMode:"environment"},{fps:10,formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.CODE_128]},onScanSuccess);}; document.head.appendChild(script);}
-function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCodeInstance){html5QrCodeInstance.stop().then(()=>{$('leitor').innerHTML=''});}}
+function iniciarLeitor(tipo){
+  tipoLeitor=tipo;
+  $('btnPararLeitor').classList.remove('hidden');
+  $('leitor').innerHTML = '<div class="linha-scan"></div>'; // Recria a linha
+  const script=document.createElement('script');
+  script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+  script.onload=()=>{
+    html5QrCodeInstance=new Html5Qrcode("leitor");
+    const onScanSuccess=(codigo)=>{
+      if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo};
+      pararLeitor();
+    };
+    html5QrCodeInstance.start(
+      {facingMode:"environment"},
+      {fps:10, qrbox:{width:250, height:100}, formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.CODE_128]},
+      onScanSuccess
+    );
+  };
+  document.head.appendChild(script);
+}
+function pararLeitor(){
+  $('btnPararLeitor').classList.add('hidden');
+  if(html5QrCodeInstance){
+    html5QrCodeInstance.stop().then(()=>{
+      $('leitor').innerHTML='<div class="linha-scan"></div>';
+    });
+  }
+}
 
 // EVENTOS
 document.addEventListener('DOMContentLoaded', ()=>{
