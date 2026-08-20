@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V3.5</title>
+<title>DND PLANEJADOS - ESTOQUE V2.7</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -52,6 +52,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div id="listaAlertaEstoque" style="font-size:14px;margin-top:8px"></div>
 </div>
 
+<!-- MODAL SENHA ADMIN -->
 <div id="modalSenhaAdmin" class="modal hidden">
 <div class="card" style="width:90%;max-width:350px">
 <h2 class="font-bold mb-2">🔒 Confirmação do Admin</h2>
@@ -254,73 +255,38 @@ function salvarUsuario(){
   let data={nome:$('uNome').value.trim(),login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value};
   let editando = $('uId').value;
 
-  if(!data.nome ||!data.login ||!data.senha) {
-    return alert("Preencha Nome, Login e Senha!");
-  }
+  if(!data.nome ||!data.login ||!data.senha) return alert("Preencha tudo!");
 
   if(editando){
-    db.collection("usuarios").doc(editando).update(data).then(()=>{
-      alert("Usuário atualizado!");
-      limparFormUsuario();
-    }).catch(e=>alert("Erro: "+e.message));
+    db.collection("usuarios").doc(editando).update(data).then(()=>{alert("Usuário atualizado!"); limparFormUsuario();});
   } else {
     dadosNovoUsuario = {...data};
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
     $('erroSenhaAdmin').innerText='';
-    $('senhaAdminConfirm').focus();
   }
 }
 
 function confirmarSenhaAdmin(){
-  if(!dadosNovoUsuario) return fecharModalAdmin();
-
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
-
-  $('btnConfirmarAdmin').disabled = true;
-
-  if(!admin){
-    alert("Erro: Nenhum admin encontrado no banco!");
-    fecharModalAdmin();
-    return;
-  }
-
-  if(senhaDigitada == admin.senha){
-    db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
-      alert("Usuário criado com sucesso!");
-      fecharModalAdmin();
-      limparFormUsuario();
-    }).catch(e=>{
-      alert("Erro ao salvar: "+e.message);
-      fecharModalAdmin();
-    }).finally(()=>{
-      $('btnConfirmarAdmin').disabled = false;
-    });
+  if(admin && admin.senha == senhaDigitada){
+    db.collection("usuarios").add(dadosNovoUsuario).then(()=>{alert("Usuário criado!"); fecharModalAdmin(); limparFormUsuario();});
   } else {
-    $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
-    $('senhaAdminConfirm').value = '';
-    $('btnConfirmarAdmin').disabled = false;
+    $('erroSenhaAdmin').innerText = "Senha incorreta!";
   }
 }
 
 function fecharModalAdmin(){
   $('modalSenhaAdmin').classList.add('hidden');
   dadosNovoUsuario = null;
-  $('btnConfirmarAdmin').disabled = false;
-  $('erroSenhaAdmin').innerText = '';
 }
 
 function limparFormUsuario(){
   $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
 }
 
-function editarUsuario(id){
-  let u=usuarios.find(x=>x.id==id);
-  $('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel;
-  $('btnSalvarUser').innerText = 'ATUALIZAR USUÁRIO';
-  window.scrollTo(0,0)
-}
+function editarUsuario(id){let u=usuarios.find(x=>x.id==id);$('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel; window.scrollTo(0,0)}
 function excluirUsuario(id){if(confirm("Excluir usuário?"))db.collection("usuarios").doc(id).delete()}
 
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
@@ -372,7 +338,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
   $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
   $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
-$('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
+  $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
   $('btn-produtos').onclick=()=>mostrarAba('produtos');
   $('btn-movimentacao').onclick=()=>mostrarAba('movimentacao');
@@ -381,7 +347,7 @@ $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-config').onclick=()=>mostrarAba('config');
   $('btn-sair').onclick=sair;
   $('eBusca').oninput=(e)=>buscarProduto(e.target.value, 'entrada');
-  $('sBusca').oninput=(e)=>buscarProduto(e.target.value, 'saida');
+$('sBusca').oninput=(e)=>buscarProduto(e.target.value, 'saida');
   carregarTudo();
 });
 </script>
