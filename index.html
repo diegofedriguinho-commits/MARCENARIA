@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V1.9</title>
+<title>DND PLANEJADOS - ESTOQUE V2.0</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
@@ -19,6 +19,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .topo{position:sticky;top:0;z-index:20;padding:10px;background:var(--bg)}
 .btn-topo{padding:10px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-weight:bold;color:var(--text);font-size:15px;width:100%;text-align:center}
 #leitor{width:100%;height:250px;border:2px dashed var(--border);border-radius:10px;position:relative;overflow:hidden;background:#000}
+#leitor video{width:100%!important;height:100%!important;object-fit:cover}
 .linha-scan{position:absolute;top:50%;left:5%;width:90%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:100;pointer-events:none}
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:4px 10px;border-radius:20px;font-size:12px}
@@ -71,6 +72,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
 <input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
 <button id="btnLeitorSaida" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
+<button id="btnPararLeitorSaida" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
+<div id="leitorSaida" class="mb-2 hidden"><div class="linha-scan"></div></div>
 <input id="sQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="sObs" class="input mb-2" placeholder="Motivo: Venda, Perda, Uso">
 <button id="btnAddSaida" class="w-full btn bg-red-600 text-white">LANÇAR SAÍDA</button>
@@ -80,8 +83,8 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
 <input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
 <button id="btnLeitorEntrada" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
-<button id="btnPararLeitor" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
-<div id="leitor" class="mb-2"><div class="linha-scan"></div></div>
+<button id="btnPararLeitorEntrada" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
+<div id="leitorEntrada" class="mb-2 hidden"><div class="linha-scan"></div></div>
 <input id="eQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
 <input id="eDoc" class="input mb-2" placeholder="Nº Documento / NF">
 <input id="eObs" class="input mb-2" placeholder="Observação / Fornecedor">
@@ -170,8 +173,18 @@ function carregarDashboard(){
   $('dataHoje').innerText = hoje;
   let entradasHoje = movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
   let saidasHoje = movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
-  if(entradasHoje.length==0){$('listaEntradasHoje').innerHTML='<p>Nenhuma entrada hoje</p>'} else {$('listaEntradasHoje').innerHTML = entradasHoje.map(e=>`<div class="mov-item"><span>${e.produto}</span><span class="text-green-500">+${e.qtd}</span></div>`).join('')}
-  if(saidasHoje.length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'} else {$('listaSaidasHoje').innerHTML = saidasHoje.map(s=>`<div class="mov-item"><span>${s.produto}</span><span class="text-red-500">-${s.qtd}</span></div>`).join('')}
+
+  // AGRUPAR POR PRODUTO
+  let grupoEntradas = {};
+  entradasHoje.forEach(e => { grupoEntradas[e.produto] = (grupoEntradas[e.produto] || 0) + e.qtd; });
+  let grupoSaidas = {};
+  saidasHoje.forEach(s => { grupoSaidas[s.produto] = (grupoSaidas[s.produto] || 0) + s.qtd; });
+
+  if(Object.keys(grupoEntradas).length==0){$('listaEntradasHoje').innerHTML='<p>Nenhuma entrada hoje</p>'}
+  else {$('listaEntradasHoje').innerHTML = Object.keys(grupoEntradas).map(nome=>`<div class="mov-item"><span>${nome}</span><span class="text-green-500">+${grupoEntradas[nome]}</span></div>`).join('')}
+
+  if(Object.keys(grupoSaidas).length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'}
+  else {$('listaSaidasHoje').innerHTML = Object.keys(grupoSaidas).map(nome=>`<div class="mov-item"><span>${nome}</span><span class="text-red-500">-${grupoSaidas[nome]}</span></div>`).join('')}
 }
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
 function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
@@ -186,18 +199,23 @@ function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
 function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
 
-// LEITOR
+// LEITOR SEPARADO PRA ENTRADA E SAIDA
 function iniciarLeitor(tipo){
   tipoLeitor=tipo;
-  $('btnPararLeitor').classList.remove('hidden');
-  $('leitor').innerHTML = '<div class="linha-scan"></div>'; // Recria a linha
+  let divLeitor = tipo=='entrada'? $('leitorEntrada') : $('leitorSaida');
+  let btnParar = tipo=='entrada'? $('btnPararLeitorEntrada') : $('btnPararLeitorSaida');
+
+  divLeitor.classList.remove('hidden');
+  btnParar.classList.remove('hidden');
+  divLeitor.innerHTML = '<div class="linha-scan"></div>';
+
   const script=document.createElement('script');
   script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   script.onload=()=>{
-    html5QrCodeInstance=new Html5Qrcode("leitor");
+    html5QrCodeInstance=new Html5Qrcode(divLeitor.id);
     const onScanSuccess=(codigo)=>{
       if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo};
-      pararLeitor();
+      pararLeitor(tipo);
     };
     html5QrCodeInstance.start(
       {facingMode:"environment"},
@@ -207,11 +225,14 @@ function iniciarLeitor(tipo){
   };
   document.head.appendChild(script);
 }
-function pararLeitor(){
-  $('btnPararLeitor').classList.add('hidden');
+function pararLeitor(tipo){
+  let divLeitor = tipo=='entrada'? $('leitorEntrada') : $('leitorSaida');
+  let btnParar = tipo=='entrada'? $('btnPararLeitorEntrada') : $('btnPararLeitorSaida');
+  btnParar.classList.add('hidden');
   if(html5QrCodeInstance){
     html5QrCodeInstance.stop().then(()=>{
-      $('leitor').innerHTML='<div class="linha-scan"></div>';
+      divLeitor.classList.add('hidden');
+      divLeitor.innerHTML='<div class="linha-scan"></div>';
     });
   }
 }
@@ -231,7 +252,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnBackup').onclick=baixarBackup;
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
-  $('btnPararLeitor').onclick=pararLeitor;
+  $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
+  $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
   $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
