@@ -60,7 +60,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <input id="senhaAdminConfirm" type="password" class="input mb-2" placeholder="Senha do Admin">
 <p id="erroSenhaAdmin" class="text-red-500"></p>
 <div class="grid gap-2">
-<button id="btnConfirmarAdmin" class="btn bg-indigo-600 text-white">CONFIRMAR</button>
+<button id="btnConfirmarAdmin" onclick="confirmarSenhaAdmin()" class="btn bg-indigo-600 text-white">CONFIRMAR</button>
 <button onclick="fecharModalAdmin()" class="btn bg-gray-600 text-white">CANCELAR</button>
 </div>
 </div>
@@ -260,8 +260,8 @@ function salvarUsuario(){
   if(editando){
     db.collection("usuarios").doc(editando).update(data).then(()=>{alert("Usuário atualizado!"); limparFormUsuario();});
   } else {
-    // Só abre o modal se tiver dados
-    dadosNovoUsuario = {...data};
+    // Guarda os dados no botão pra não perder
+    $('btnConfirmarAdmin').dataset.user = JSON.stringify(data);
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
     $('erroSenhaAdmin').innerText='';
@@ -270,44 +270,32 @@ function salvarUsuario(){
 }
 
 function confirmarSenhaAdmin(){
-  if(!dadosNovoUsuario){ // TRAVA SE VIER NULL
-    alert("Erro: Dados do usuário perdidos. Preencha novamente.");
+  let dados = JSON.parse($('btnConfirmarAdmin').dataset.user || 'null');
+  if(!dados){
+    alert("Erro: Preencha o formulário novamente.");
     return fecharModalAdmin();
   }
 
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
 
-  $('btnConfirmarAdmin').disabled = true;
-
-  if(!admin){
-    alert("Erro: Nenhum admin encontrado!");
-    fecharModalAdmin();
-    return;
-  }
+  if(!admin) return alert("Erro: Nenhum admin encontrado!");
 
   if(senhaDigitada == admin.senha){
-    db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
+    db.collection("usuarios").add(dados).then(()=>{
       alert("Usuário criado com sucesso!");
       fecharModalAdmin();
       limparFormUsuario();
-    }).catch(e=>{
-      alert("Erro ao salvar: "+e.message);
-      fecharModalAdmin();
-    }).finally(()=>{
-      $('btnConfirmarAdmin').disabled = false;
-    });
+    }).catch(e=> alert("Erro ao salvar: "+e.message));
   } else {
     $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
     $('senhaAdminConfirm').value = '';
-    $('btnConfirmarAdmin').disabled = false;
   }
 }
 
 function fecharModalAdmin(){
   $('modalSenhaAdmin').classList.add('hidden');
-  dadosNovoUsuario = null; // limpa sempre
-  $('btnConfirmarAdmin').disabled = false;
+  $('btnConfirmarAdmin').dataset.user = ''; // limpa
 }
 
 function limparFormUsuario(){
