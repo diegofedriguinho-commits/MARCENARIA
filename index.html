@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.3</title>
+<title>DND PLANEJADOS - ESTOQUE V1.4</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
-<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
+<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:50"><div class="card" style="width:320px"><h2 class="text-center font-bold" style="font-size:1.5rem;margin-bottom:8px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:12px;color:#888">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2"></p></div></div>
 
 <div class="p-2 pb-24">
 <div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
@@ -108,19 +108,30 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const $=id=>document.getElementById(id);
-let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null;
+let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null, usuariosCarregados=false;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
 function alternarTema(){document.body.classList.toggle('dark')}
 function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
-function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
+function logar(){if(!usuariosCarregados) return alert("Aguarde carregar os usuários..."); let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
 function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').style.display='none';$('btn-config').style.display='none';}}
 
 function carregarTudo(){
-  db.collection("usuarios").get().then(snap=>{ if(snap.empty){ criarAdminPadrao(); } });
   db.collection("produtos").onSnapshot(snap=>{produtos=snap.docs.map(d=>({id:d.id,...d.data()})); listarProdutos(); verificarEstoqueBaixo();});
-  db.collection("usuarios").onSnapshot(snap=>{usuarios=snap.docs.map(d=>({id:d.id,...d.data()})); listarUsuarios();});
+  db.collection("usuarios").onSnapshot(snap=>{
+    usuarios=snap.docs.map(d=>({id:d.id,...d.data()})); 
+    listarUsuarios();
+    if(!usuariosCarregados){
+      usuariosCarregados=true;
+      $('statusCarregando').innerText='Pronto!';
+      $('usuarioLogin').disabled=false;
+      $('senhaLogin').disabled=false;
+      $('btnEntrar').disabled=false;
+      $('btnCadastrar').disabled=false;
+      if(usuarios.length==0){ criarAdminPadrao(); }
+    }
+  });
   db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()}));});
   db.collection("loja").onSnapshot(snap=>{if(!snap.empty){loja=snap.docs[0].data(); $('lNome').value=loja.nome||''; $('nomeLojaTopo').innerText=loja.nome||'DND PLANEJADOS';}});
 }
@@ -185,6 +196,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btn-usuarios').onclick=()=>mostrarAba('usuarios');
   $('btn-config').onclick=()=>mostrarAba('config');
   $('btn-sair').onclick=sair;
+  carregarTudo(); // <-- IMPORTANTE: já carrega os usuários na abertura
 });
 </script>
 </body>
