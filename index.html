@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DND PLANEJADOS - ESTOQUE V1.0</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
+body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;padding-bottom:90px}
+.btn{padding:10px 14px;border-radius:8px;font-weight:bold;cursor:pointer}
+.input{padding:10px;border:1px solid var(--border);border-radius:8px;width:100%;background:var(--card);color:var(--text)}
+.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1);border:1px solid var(--border)}
+.aba{display:none}.ativa{display:block}
+.menu{display:grid;grid-template-columns:repeat(auto-fit, minmax(90px, 1fr));position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:10}
+.menu button{padding:10px 4px;font-size:11px;font-weight:bold;background:transparent;color:var(--text)}
+.menu button.on{background:var(--primary);color:white}
+.hidden{display:none}
+.topo{position:fixed;top:10px;right:10px;z-index:20;display:flex;gap:8px}
+.btn-topo{padding:8px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-weight:bold;cursor:pointer}
+#leitor{width:100%;height:220px;border:2px dashed var(--border);border-radius:8px;position:relative;overflow:hidden;background:#000}
+#leitor::after{content:'';position:absolute;top:50%;left:0;width:100%;height:3px;background:#ef4444;box-shadow:0 0 15px #ef4444;animation:scan 1.8s linear infinite;z-index:5}
+@keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
+.badge{background:var(--primary);color:white;padding:2px 8px;border-radius:20px;font-size:10px}
+</style>
+</head>
+<body>
+
+<div class="topo">
+<button onclick="alternarTema()" class="btn-topo">🌙 TEMA</button>
+<span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
+</div>
+
+<div id="telaLogin" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"><div class="card w-80 text-center"><h2 class="text-2xl font-bold mb-2">DND PLANEJADOS</h2><input id="usuarioLogin" class="input mb-2" placeholder="Usuário"><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha"><button onclick="logar()" class="w-full btn bg-indigo-600 text-white">ENTRAR</button><button onclick="mostrarCadastroUser()" class="w-full btn bg-gray-600 text-white mt-2">CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 text-sm mt-2"></p></div></div>
+
+<div class="p-2 pb-24">
+<div id="alertaEstoque" class="card bg-red-900 border-l-4 border-red-500 mb-2 hidden"><h2 class="font-bold text-red-400">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
+
+<div id="dashboard" class="aba ativa"><div class="grid md:grid-cols-3 gap-2">
+<div class="card"><h2 class="text-sm">Total Produtos</h2><p class="text-3xl font-bold"><span id="totalProdutos">0</span></p></div>
+<div class="card"><h2 class="text-sm">Valor em Estoque</h2><p class="text-3xl font-bold text-green-500">R$ <span id="valorEstoque">0.00</span></p></div>
+<div class="card"><h2 class="text-sm">Saídas Hoje</h2><p class="text-3xl font-bold text-red-500"><span id="saidasHoje">0</span></p></div>
+</div><div class="card mt-2"><canvas id="graficoMov" height="80"></canvas></div></div>
+
+<div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid md:grid-cols-4 gap-2">
+<input id="pNome" class="input" placeholder="Nome do Produto">
+<input id="pCod" class="input" placeholder="Código de Barras">
+<input id="pCusto" type="text" inputmode="decimal" class="input" placeholder="Custo R$">
+<input id="pPreco" type="text" inputmode="decimal" class="input" placeholder="Preço R$">
+<input id="pEstoqueMin" type="text" inputmode="numeric" class="input" placeholder="Estoque Mínimo">
+<input id="pEstoque" type="text" inputmode="numeric" class="input" placeholder="Estoque Atual">
+</div><button onclick="salvarProduto()" class="w-full btn bg-indigo-600 text-white mt-2">SALVAR PRODUTO</button></div><div id="listaProdutos" class="grid md:grid-cols-2 gap-2"></div></div>
+
+<div id="movimentacao" class="aba"><div class="grid lg:grid-cols-2 gap-2">
+<div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
+<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar" onkeypress="if(event.key=='Enter')addEntrada()">
+<button onclick="iniciarLeitor('entrada')" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
+<button id="btnPararLeitor" onclick="pararLeitor()" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
+<div id="leitor" class="mb-2"></div>
+<input id="eQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
+<input id="eObs" class="input mb-2" placeholder="Observação NF/Fornecedor">
+<button onclick="addEntrada()" class="w-full btn bg-green-600 text-white">LANÇAR ENTRADA</button>
+</div>
+<div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
+<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar" onkeypress="if(event.key=='Enter')addSaida()">
+<button onclick="iniciarLeitor('saida')" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
+<input id="sQtd" type="text" inputmode="numeric" class="input mb-2" placeholder="Quantidade">
+<input id="sObs" class="input mb-2" placeholder="Motivo: Venda, Perda, Uso">
+<button onclick="addSaida()" class="w-full btn bg-red-600 text-white">LANÇAR SAÍDA</button>
+</div></div></div>
+
+<div id="relatorios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">RELATÓRIOS</h2><div class="grid md:grid-cols-3 gap-2 mb-2">
+<input id="dataIni" type="date" class="input">
+<input id="dataFim" type="date" class="input">
+<button onclick="relProdutos()" class="btn bg-indigo-600 text-white">ESTOQUE ATUAL</button>
+<button onclick="relEntradas()" class="btn bg-green-600 text-white">ENTRADAS</button>
+<button onclick="relSaidas()" class="btn bg-red-600 text-white">SAÍDAS</button>
+</div></div><div id="resultadoRel" class="grid gap-2"></div></div>
+
+<div id="usuarios" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO DE USUÁRIOS</h2><input type="hidden" id="uId"><input id="uNome" class="input mb-2" placeholder="Nome"><input id="uLogin" class="input mb-2" placeholder="Login"><input id="uSenha" type="password" class="input mb-2" placeholder="Senha"><select id="uNivel" class="input mb-2"><option value="operador">OPERADOR</option><option value="admin">ADMIN</option></select><button onclick="salvarUsuario()" class="w-full btn bg-indigo-600 text-white">SALVAR USUÁRIO</button></div><div id="listaUsuarios" class="grid gap-2"></div></div>
+
+<div id="config" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CONFIGURAÇÕES DA LOJA</h2><input id="lNome" class="input mb-2" placeholder="Nome da Loja"><input id="lEnd" class="input mb-2" placeholder="Endereço"><button onclick="salvarLoja()" class="w-full btn bg-indigo-600 text-white">SALVAR</button><hr class="my-3"><button onclick="baixarBackup()" class="w-full btn bg-green-600 text-white">BAIXAR BACKUP</button></div></div></div>
+
+<nav class="menu"><button onclick="mostrarAba('dashboard')" id="btn-dashboard" class="on">DASHBOARD</button><button onclick="mostrarAba('produtos')" id="btn-produtos">PRODUTOS</button><button onclick="mostrarAba('movimentacao')" id="btn-movimentacao">MOVIMENTOS</button><button onclick="mostrarAba('relatorios')" id="btn-relatorios">RELATÓRIOS</button><button onclick="mostrarAba('usuarios')" id="btn-usuarios">USUÁRIOS</button><button onclick="mostrarAba('config')" id="btn-config">LOJA</button><button onclick="sair()">SAIR</button></nav>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDgWKzyqkOK3S8cS9ZXngihhEcijKcvPJg",
+  authDomain: "marcenaria-657f3.firebaseapp.com",
+  projectId: "marcenaria-657f3",
+  storageBucket: "marcenaria-657f3.firebasestorage.app",
+  messagingSenderId: "746817920402",
+  appId: "1:746817920402:web:f7180f4705eff2f0f3b54b"
+};
+firebase.initializeApp(firebaseConfig); const db = firebase.firestore(); const $=id=>document.getElementById(id);
+let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null;
+
+function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
+function alternarTema(){document.body.classList.toggle('dark')}
+function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
+function logar(){let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').classList.add('hidden'); verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
+function sair(){location.reload();}
+function verificarPermissoes(){if(usuarioLogado.nivel!='admin'){$('btn-usuarios').classList.add('hidden');$('btn-config').classList.add('hidden');}}
+
+function carregarTudo(){
+  db.collection("usuarios").get().then(snap=>{
+    if(snap.empty){ criarAdminPadrao(); }
+  });
+  db.collection("produtos").onSnapshot(snap=>{produtos=snap.docs.map(d=>({id:d.id,...d.data()})); listarProdutos(); verificarEstoqueBaixo();});
+  db.collection("usuarios").onSnapshot(snap=>{usuarios=snap.docs.map(d=>({id:d.id,...d.data()})); listarUsuarios();});
+  db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()}));});
+  db.collection("loja").onSnapshot(snap=>{if(!snap.empty){loja=snap.docs[0].data(); $('lNome').value=loja.nome||''; $('nomeLojaTopo').innerText=loja.nome||'DND PLANEJADOS';}});
+}
+function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"admin",senha:"1234",nivel:"admin"}); alert("Usuário Admin criado! Login: admin / Senha: 1234")}
+function verificarEstoqueBaixo(){let baixos=produtos.filter(p=>(p.estoque||0)<= (p.estoqueMin||5)); if(baixos.length>0){$('alertaEstoque').classList.remove('hidden'); $('listaAlertaEstoque').innerHTML=baixos.map(p=>`<p>${p.nome}: <b>${p.estoque}</b> un - Mín: ${p.estoqueMin}</p>`).join('');}else{$('alertaEstoque').classList.add('hidden')}}
+
+function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b>${p.nome}</b><br>Cód: ${p.cod}<br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<br>R$${Number(p.preco||0).toFixed(2)}<div class="mt-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white text-sm">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white text-sm">EXCLUIR</button></div></div>`).join('')}
+function salvarProduto(){let data={nome:$('pNome').value,cod:$('pCod').value,custo:toNum($('pCusto').value),preco:toNum($('pPreco').value),estoqueMin:parseInt(toNum($('pEstoqueMin').value))||5,estoque:parseInt(toNum($('pEstoque').value))||0}; if($('pId').value){db.collection("produtos").doc($('pId').value).update(data)}else{db.collection("produtos").add(data)} alert("Salvo!"); $('pId').value='';$('pNome').value='';$('pCod').value='';$('pCusto').value='';$('pPreco').value='';$('pEstoqueMin').value='';$('pEstoque').value='';}
+function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pCusto').value=p.custo;$('pPreco').value=p.preco;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque}
+function excluirProduto(id){if(confirm("Excluir?"))db.collection("produtos").doc(id).delete()}
+
+function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').value)); let obs=$('eObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); let novoEstoque=(prod.estoque||0)+qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'entrada',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Entrada lançada!"); $('eCod').value='';$('eQtd').value='';$('eObs').value='';}
+function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
+
+function carregarDashboard(){let valorEstoque=produtos.reduce((a,p)=>a+((p.estoque||0)*(p.custo||0)),0); let hoje=new Date().toLocaleDateString(); let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0); $('totalProdutos').innerText=produtos.length; $('valorEstoque').innerText=valorEstoque.toFixed(2); $('saidasHoje').innerText=saidasHoje; const ctx=document.getElementById('graficoMov'); if(graficoMov) graficoMov.destroy(); graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]}})
+function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Custo: R$${p.custo} | Total: R$${((p.estoque||0)*(p.custo||0)).toFixed(2)}</div>`).join('')}
+function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">ENTRADAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
+function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">SAÍDAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
+
+function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br>Login: ${u.login} | Nível: ${u.nivel}</div>`).join('')}
+function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; db.collection("usuarios").add(data); alert("Usuário salvo!"); $('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
+function mostrarCadastroUser(){$('telaLogin').classList.add('hidden'); mostrarAba('usuarios');}
+
+function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
+function baixarBackup(){let backup={produtos,usuarios,movimentacoes}; let blob=new Blob([JSON.stringify(backup)],{type:'application/json'}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`backup_dnd.json`; a.click();}
+
+// LEITOR
+function iniciarLeitor(tipo){tipoLeitor=tipo; $('btnPararLeitor').classList.remove('hidden'); const script=document.createElement('script'); script.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; script.onload=()=>{html5QrCodeInstance=new Html5Qrcode("leitor"); const onScanSuccess=(codigo)=>{if(tipoLeitor=='entrada'){$('eCod').value=codigo}else{$('sCod').value=codigo}}; html5QrCodeInstance.start({facingMode:"environment"},{fps:10,formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.CODE_128]},onScanSuccess);}; document.head.appendChild(script);}
+function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCodeInstance){html5QrCodeInstance.stop()}$('leitor').innerHTML='';}
+</script>
+</body>
+</html>
