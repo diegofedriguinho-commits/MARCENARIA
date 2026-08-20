@@ -286,32 +286,39 @@ function confirmarSenhaAdmin(){
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
 
-  if(!admin) {
-    alert("Nenhum admin cadastrado!");
-    return fecharModalAdmin();
+  $('btnConfirmarAdmin').disabled = true; // trava pra não clicar 2x
+
+  if(!admin){
+    alert("Erro: Nenhum admin encontrado no banco!");
+    fecharModalAdmin(); // FORÇA FECHAR
+    return;
   }
 
+  
   if(senhaDigitada == admin.senha){
-    $('btnConfirmarAdmin').disabled = true;
     db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
       alert("Usuário criado com sucesso!");
-      fecharModalAdmin();
+      fecharModalAdmin(); // FECHA AQUI
       limparFormUsuario();
-      $('btnConfirmarAdmin').disabled = false;
     }).catch(e=>{
       alert("Erro ao salvar: "+e.message);
+      fecharModalAdmin(); // FECHA NO ERRO TAMBÉM
+    }).finally(()=>{
       $('btnConfirmarAdmin').disabled = false;
     });
   } else {
     $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
     $('senhaAdminConfirm').value = '';
+    $('btnConfirmarAdmin').disabled = false;
   }
 }
+
 
 function fecharModalAdmin(){
   $('modalSenhaAdmin').classList.add('hidden');
   dadosNovoUsuario = null;
   $('btnConfirmarAdmin').disabled = false;
+  $('erroSenhaAdmin').innerText = ''; // limpa erro
 }
 
 function limparFormUsuario(){
