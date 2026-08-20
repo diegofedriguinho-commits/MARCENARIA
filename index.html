@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.6</title>
+<title>DND PLANEJADOS - ESTOQUE V1.7</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
@@ -26,6 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .tab-btn{padding:8px 12px;background:transparent;border:none;color:var(--text);cursor:pointer}
 .tab-btn.ativa{border-bottom:2px solid var(--primary);font-weight:bold}
 .subaba{display:none}.subaba.ativa{display:block}
+.mov-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)}
 @media print{.menu,.topo,.btn,.tabs{display:none}body{background:white;color:black}.card{border:1px solid #000;page-break-inside:avoid}}
 @media(min-width:768px){.md\\:grid-cols-3{grid-template-columns:repeat(3,1fr)}.md\\:grid-cols-4{grid-template-columns:repeat(4,1fr)}.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1024px){.lg\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}}
@@ -42,15 +43,13 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div class="p-2 pb-24">
 <div id="alertaEstoque" class="card hidden" style="background:#7f1d1d;border-left:4px solid #ef4444"><h2 class="font-bold" style="color:#f87171">⚠️ ESTOQUE BAIXO</h2><div id="listaAlertaEstoque"></div></div>
 
-<div id="dashboard" class="aba ativa"><div class="card mb-2"><h2 class="font-bold mb-2">FILTRO DASHBOARD</h2><div class="grid md:grid-cols-3 gap-2">
-<input id="dashIni" type="date" class="input">
-<input id="dashFim" type="date" class="input">
-<button id="btnCarregarDash" class="btn bg-indigo-600 text-white">CARREGAR</button>
-</div></div>
+<div id="dashboard" class="aba ativa">
+<div class="card mb-2"><h2 class="font-bold">📊 MOVIMENTAÇÕES DE HOJE - <span id="dataHoje"></span></h2></div>
 <div class="grid md:grid-cols-2 gap-2">
-<div class="card"><h2>Entradas no Período</h2><p style="font-size:1.875rem;font-weight:bold" class="text-green-500"><span id="dashEntradas">0</span></p></div>
-<div class="card"><h2>Saídas no Período</h2><p style="font-size:1.875rem;font-weight:bold" class="text-red-500"><span id="dashSaidas">0</span></p></div>
-</div><div class="card mt-2"><canvas id="graficoMov" height="80"></canvas></div></div>
+<div class="card"><h2 class="font-bold mb-2 text-green-500">📥 ENTRADAS DE HOJE</h2><div id="listaEntradasHoje">Carregando...</div></div>
+<div class="card"><h2 class="font-bold mb-2 text-red-500">📤 SAÍDAS DE HOJE</h2><div id="listaSaidasHoje">Carregando...</div></div>
+</div>
+</div>
 
 <div id="produtos" class="aba"><div class="card mb-2"><h2 class="font-bold mb-2">CADASTRO PRODUTO</h2><input type="hidden" id="pId"><div class="grid md:grid-cols-3 gap-2">
 <input id="pNome" class="input" placeholder="Nome do Produto">
@@ -124,10 +123,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const $=id=>document.getElementById(id);
-let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', graficoMov, html5QrCodeInstance=null, usuariosCarregados=false;
+let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', html5QrCodeInstance=null, usuariosCarregados=false;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
-function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on');}
+function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard();}
 function mostrarSubAba(id){document.querySelectorAll('.subaba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('ativa'));$(`tab-${id.split('-')[1]}`).classList.add('ativa');}
 function logar(){if(!usuariosCarregados) return alert("Aguarde carregar os usuários..."); let login=$('usuarioLogin').value; let senha=$('senhaLogin').value; let user=usuarios.find(u=>u.login==login && u.senha==senha); if(user){usuarioLogado=user; $('telaLogin').style.display='none'; verificarPermissoes(); carregarTudo();} else {$('erroLogin').innerText='Usuário ou Senha inválidos!';}}
 function sair(){location.reload();}
@@ -148,7 +147,7 @@ function carregarTudo(){
       if(usuarios.length==0){ criarAdminPadrao(); }
     }
   });
-  db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()}));});
+  db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()})); if(document.querySelector('#dashboard.ativa')) carregarDashboard();});
   db.collection("loja").onSnapshot(snap=>{if(!snap.empty){loja=snap.docs[0].data(); $('lNome').value=loja.nome||''; $('nomeLojaTopo').innerText=loja.nome||'DND PLANEJADOS';}});
 }
 function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"admin",senha:"1234",nivel:"admin"}); alert("Usuário Admin criado! Login: admin / Senha: 1234")}
@@ -163,15 +162,21 @@ function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').
 function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
 
 function carregarDashboard(){
-  if(!$('dashIni').value) return alert("Selecione as datas do Dashboard");
-  let ini=new Date($('dashIni').value); let fim=new Date($('dashFim').value+'T23:59:59');
-  let entradas=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
-  let saidas=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
-  $('dashEntradas').innerText=entradas.reduce((a,b)=>a+b.qtd,0);
-  $('dashSaidas').innerText=saidas.reduce((a,b)=>a+b.qtd,0);
-  const ctx=document.getElementById('graficoMov');
-  if(graficoMov) graficoMov.destroy();
-  graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[entradas.length,saidas.length],backgroundColor:['#22c55e','#ef4444']}]}});
+  let hoje = new Date().toLocaleDateString();
+  $('dataHoje').innerText = hoje;
+
+  let entradasHoje = movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
+  let saidasHoje = movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje);
+
+  if(entradasHoje.length==0){$('listaEntradasHoje').innerHTML='<p>Nenhuma entrada hoje</p>'}
+  else {
+    $('listaEntradasHoje').innerHTML = entradasHoje.map(e=>`<div class="mov-item"><span>${e.produto}</span><span class="text-green-500">+${e.qtd} un</span></div>`).join('')
+  }
+
+  if(saidasHoje.length==0){$('listaSaidasHoje').innerHTML='<p>Nenhuma saída hoje</p>'}
+  else {
+    $('listaSaidasHoje').innerHTML = saidasHoje.map(s=>`<div class="mov-item"><span>${s.produto}</span><span class="text-red-500">-${s.qtd} un</span></div>`).join('')
+  }
 }
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
 function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS - ${ini.toLocaleDateString()} a ${fim.toLocaleDateString()}</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Doc: ${d.documento||'-'} | Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
@@ -206,7 +211,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
   $('btnPararLeitor').onclick=pararLeitor;
-  $('btnCarregarDash').onclick=carregarDashboard;
   $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
