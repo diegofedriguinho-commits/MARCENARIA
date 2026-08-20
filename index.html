@@ -2,8 +2,8 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DND PLANEJADOS - ESTOQUE V1.2</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>DND PLANEJADOS - ESTOQUE V1.3</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root{--bg:#f8fafc;--card:#ffffff;--text:#0f172a;--border:#e2e8f0;--primary:#4f46e5}
 body.dark{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155}
@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <body>
 
 <div class="topo">
-<button onclick="alternarTema()" class="btn-topo">🌙 TEMA</button>
+<button id="btnTema" class="btn-topo">🌙 TEMA</button>
 <span id="nomeLojaTopo" class="btn-topo bg-indigo-600 text-white">DND PLANEJADOS</span>
 </div>
 
@@ -135,7 +135,17 @@ function excluirProduto(id){if(confirm("Excluir?"))db.collection("produtos").doc
 function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').value)); let obs=$('eObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); let novoEstoque=(prod.estoque||0)+qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'entrada',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Entrada lançada!"); $('eCod').value='';$('eQtd').value='';$('eObs').value='';}
 function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
 
-function carregarDashboard(){let valorEstoque=produtos.reduce((a,p)=>a+((p.estoque||0)*(p.custo||0)),0); let hoje=new Date().toLocaleDateString(); let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0); $('totalProdutos').innerText=produtos.length; $('valorEstoque').innerText=valorEstoque.toFixed(2); $('saidasHoje').innerText=saidasHoje; const ctx=document.getElementById('graficoMov'); if(graficoMov) graficoMov.destroy(); graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]})}
+function carregarDashboard(){
+  let valorEstoque=produtos.reduce((a,p)=>a+((p.estoque||0)*(p.custo||0)),0);
+  let hoje=new Date().toLocaleDateString();
+  let saidasHoje=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000).toLocaleDateString()==hoje).reduce((a,b)=>a+b.qtd,0);
+  $('totalProdutos').innerText=produtos.length;
+  $('valorEstoque').innerText=valorEstoque.toFixed(2);
+  $('saidasHoje').innerText=saidasHoje;
+  const ctx=document.getElementById('graficoMov');
+  if(graficoMov) graficoMov.destroy();
+  graficoMov=new Chart(ctx,{type:'bar',data:{labels:['Entradas','Saídas'],datasets:[{data:[movimentacoes.filter(m=>m.tipo=='entrada').length,movimentacoes.filter(m=>m.tipo=='saida').length],backgroundColor:['#22c55e','#ef4444']}]}});
+}
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Custo: R$${p.custo} | Total: R$${((p.estoque||0)*(p.custo||0)).toFixed(2)}</div>`).join('')}
 function relEntradas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">ENTRADAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> +${d.qtd} un<br>Por: ${d.usuario} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</div>`).join('')||'<p>Nenhuma entrada</p>'}
 function relSaidas(){if(!$('dataIni').value) return alert("Selecione as datas"); let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59'); let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim); $('resultadoRel').innerHTML=`<h2 class="font-bold">SAÍDAS DO PERÍODO</h2>`+dados.map(d=>`<div class="card"><b>${d.produto}</b> -${d.qtd} un<br>Motivo: ${d.obs} | Por: ${d.usuario}</div>`).join('')||'<p>Nenhuma saída</p>'}
@@ -153,6 +163,7 @@ function pararLeitor(){$('btnPararLeitor').classList.add('hidden'); if(html5QrCo
 
 // EVENTOS
 document.addEventListener('DOMContentLoaded', ()=>{
+  $('btnTema').onclick=alternarTema;
   $('btnEntrar').onclick=logar;
   $('btnCadastrar').onclick=mostrarCadastroUser;
   $('btnSalvarProd').onclick=salvarProduto;
