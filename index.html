@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.9</title>
+<title>DND PLANEJADOS - ESTOQUE V3.0</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -256,21 +256,23 @@ function mostrarCadastroUser(){
   $('telaLogin').style.display='none';
   mostrarAba('usuarios');
   $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+  $('btnSalvarUser').innerText = 'SALVAR USUÁRIO';
 }
 
 function salvarUsuario(){
   let data={nome:$('uNome').value.trim(),login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value};
+  let editando = $('uId').value;
 
   if(!data.nome ||!data.login ||!data.senha) {
     return alert("Preencha Nome, Login e Senha!");
   }
 
-  if($('uId').value){ // EDITAR
-    db.collection("usuarios").doc($('uId').value).update(data).then(()=>{
+  if(editando){ // EDITAR - SALVA DIRETO SEM PEDIR SENHA
+    db.collection("usuarios").doc(editando).update(data).then(()=>{
       alert("Usuário atualizado!");
-      $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+      limparFormUsuario();
     }).catch(e=>alert("Erro: "+e.message));
-  } else { // CRIAR NOVO
+  } else { // CRIAR NOVO - PEDE SENHA DO ADMIN
     dadosNovoUsuario = {...data};
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
@@ -290,7 +292,7 @@ function confirmarSenhaAdmin(){
     db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
       alert("Usuário criado com sucesso!");
       fecharModalAdmin();
-      $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+      limparFormUsuario();
     }).catch(e=>alert("Erro ao salvar: "+e.message));
   } else {
     $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
@@ -302,7 +304,16 @@ function fecharModalAdmin(){
   dadosNovoUsuario = null;
 }
 
-function editarUsuario(id){let u=usuarios.find(x=>x.id==id);$('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel; window.scrollTo(0,0)}
+function limparFormUsuario(){
+  $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+}
+
+function editarUsuario(id){
+  let u=usuarios.find(x=>x.id==id);
+  $('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel;
+  $('btnSalvarUser').innerText = 'ATUALIZAR USUÁRIO';
+  window.scrollTo(0,0)
+}
 function excluirUsuario(id){if(confirm("Excluir usuário?"))db.collection("usuarios").doc(id).delete()}
 
 function salvarLoja(){db.collection("loja").add({nome:$('lNome').value,end:$('lEnd').value}); alert("Salvo!")}
@@ -356,7 +367,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
   $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
   $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
-$('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
+  $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
   $('btn-dashboard').onclick=()=>mostrarAba('dashboard');
   $('btn-produtos').onclick=()=>mostrarAba('produtos');
