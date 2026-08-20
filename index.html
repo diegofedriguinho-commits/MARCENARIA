@@ -255,31 +255,59 @@ function salvarUsuario(){
   let data={nome:$('uNome').value.trim(),login:$('uLogin').value.trim(),senha:$('uSenha').value,nivel:$('uNivel').value};
   let editando = $('uId').value;
 
-  if(!data.nome ||!data.login ||!data.senha) return alert("Preencha tudo!");
+  if(!data.nome ||!data.login ||!data.senha) return alert("Preencha Nome, Login e Senha!");
 
   if(editando){
     db.collection("usuarios").doc(editando).update(data).then(()=>{alert("Usuário atualizado!"); limparFormUsuario();});
   } else {
+    // Só abre o modal se tiver dados
     dadosNovoUsuario = {...data};
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
     $('erroSenhaAdmin').innerText='';
+    $('senhaAdminConfirm').focus();
   }
 }
 
 function confirmarSenhaAdmin(){
+  if(!dadosNovoUsuario){ // TRAVA SE VIER NULL
+    alert("Erro: Dados do usuário perdidos. Preencha novamente.");
+    return fecharModalAdmin();
+  }
+
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
-  if(admin && admin.senha == senhaDigitada){
-    db.collection("usuarios").add(dadosNovoUsuario).then(()=>{alert("Usuário criado!"); fecharModalAdmin(); limparFormUsuario();});
+
+  $('btnConfirmarAdmin').disabled = true;
+
+  if(!admin){
+    alert("Erro: Nenhum admin encontrado!");
+    fecharModalAdmin();
+    return;
+  }
+
+  if(senhaDigitada == admin.senha){
+    db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
+      alert("Usuário criado com sucesso!");
+      fecharModalAdmin();
+      limparFormUsuario();
+    }).catch(e=>{
+      alert("Erro ao salvar: "+e.message);
+      fecharModalAdmin();
+    }).finally(()=>{
+      $('btnConfirmarAdmin').disabled = false;
+    });
   } else {
-    $('erroSenhaAdmin').innerText = "Senha incorreta!";
+    $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
+    $('senhaAdminConfirm').value = '';
+    $('btnConfirmarAdmin').disabled = false;
   }
 }
 
 function fecharModalAdmin(){
   $('modalSenhaAdmin').classList.add('hidden');
-  dadosNovoUsuario = null;
+  dadosNovoUsuario = null; // limpa sempre
+  $('btnConfirmarAdmin').disabled = false;
 }
 
 function limparFormUsuario(){
