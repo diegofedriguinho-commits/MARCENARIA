@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.6</title>
+<title>DND PLANEJADOS - ESTOQUE V2.7</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -35,6 +35,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .item-busca{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
 .item-busca:active{background:var(--primary)}
 .assinatura{font-size:10px;color:#64748b;text-align:center;margin-top:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:60}
 </style>
 </head>
 <body>
@@ -49,6 +50,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <button onclick="mostrarAba('produtos')" class="btn bg-red-600 text-white" style="padding:6px 10px;font-size:12px">VER</button>
 </div>
 <div id="listaAlertaEstoque" style="font-size:14px;margin-top:8px"></div>
+</div>
+
+<div id="modalSenhaAdmin" class="modal hidden">
+<div class="card" style="width:90%;max-width:350px">
+<h2 class="font-bold mb-2">🔒 Confirmação do Admin</h2>
+<p style="font-size:14px;color:#94a3b8;margin-bottom:10px">Digite a senha do Administrador para cadastrar novo usuário</p>
+<input id="senhaAdminConfirm" type="password" class="input mb-2" placeholder="Senha do Admin">
+<p id="erroSenhaAdmin" class="text-red-500"></p>
+<div class="grid gap-2">
+<button id="btnConfirmarAdmin" class="btn bg-indigo-600 text-white">CONFIRMAR</button>
+<button onclick="fecharModalAdmin()" class="btn bg-gray-600 text-white">CANCELAR</button>
+</div>
+</div>
 </div>
 
 <div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px"><div class="card" style="width:100%;max-width:380px"><h2 class="text-center font-bold" style="font-size:1.6rem;margin-bottom:12px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:13px;color:#888;text-align:center">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2 text-center"></p>
@@ -142,7 +156,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const $=id=>document.getElementById(id);
-let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', html5QrCodeInstance=null, usuariosCarregados=false, ultimoCodigo='';
+let produtos=[], usuarios=[], movimentacoes=[], loja={}, usuarioLogado=null, tipoLeitor='', html5QrCodeInstance=null, usuariosCarregados=false, ultimoCodigo='', dadosNovoUsuario=null;
 
 function toNum(v){ return parseFloat(String(v).replace(',','.')) || 0; }
 function mostrarAba(id){document.querySelectorAll('.aba').forEach(a=>a.classList.remove('ativa'));$(id).classList.add('ativa');document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('on'));$(`btn-${id}`).classList.add('on'); if(id=='dashboard') carregarDashboard(); window.scrollTo(0,0)}
@@ -237,7 +251,38 @@ function relSaidas(){
 }
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br><span style="font-size:14px">Login: ${u.login} | ${u.nivel}</span><div class="mt-2 grid gap-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
-function salvarUsuario(){let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value}; if($('uId').value){db.collection("usuarios").doc($('uId').value).update(data)}else{db.collection("usuarios").add(data)} alert("Salvo!"); $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';}
+
+function salvarUsuario(){
+  let data={nome:$('uNome').value,login:$('uLogin').value,senha:$('uSenha').value,nivel:$('uNivel').value};
+  if(!data.nome ||!data.login ||!data.senha) return alert("Preencha todos os campos!");
+  dadosNovoUsuario = data;
+  $('modalSenhaAdmin').classList.remove('hidden');
+  $('senhaAdminConfirm').value='';
+  $('erroSenhaAdmin').innerText='';
+}
+
+function confirmarSenhaAdmin(){
+  let senhaDigitada = $('senhaAdminConfirm').value;
+  let admin = usuarios.find(u=>u.nivel=='admin');
+  if(admin && admin.senha == senhaDigitada){
+    if($('uId').value){
+      db.collection("usuarios").doc($('uId').value).update(dadosNovoUsuario)
+    }else{
+      db.collection("usuarios").add(dadosNovoUsuario)
+    }
+    alert("Usuário salvo com sucesso!");
+    fecharModalAdmin();
+    $('uId').value='';$('uNome').value='';$('uLogin').value='';$('uSenha').value='';
+  } else {
+    $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
+  }
+}
+
+function fecharModalAdmin(){
+  $('modalSenhaAdmin').classList.add('hidden');
+  dadosNovoUsuario = null;
+}
+
 function editarUsuario(id){let u=usuarios.find(x=>x.id==id);$('uId').value=u.id;$('uNome').value=u.nome;$('uLogin').value=u.login;$('uSenha').value=u.senha;$('uNivel').value=u.nivel; window.scrollTo(0,0)}
 function excluirUsuario(id){if(confirm("Excluir usuário?"))db.collection("usuarios").doc(id).delete()}
 function mostrarCadastroUser(){$('telaLogin').style.display='none'; mostrarAba('usuarios');}
@@ -286,6 +331,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnRelEnt').onclick=relEntradas;
   $('btnRelSai').onclick=relSaidas;
   $('btnSalvarUser').onclick=salvarUsuario;
+  $('btnConfirmarAdmin').onclick=confirmarSenhaAdmin;
   $('btnSalvarLoja').onclick=salvarLoja;
   $('btnBackup').onclick=baixarBackup;
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
