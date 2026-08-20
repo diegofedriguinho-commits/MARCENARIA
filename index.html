@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.5</title>
+<title>DND PLANEJADOS - ESTOQUE V2.6</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -25,7 +25,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 @keyframes scan{0%{top:10%}50%{top:90%}100%{top:10%}}
 .badge{background:var(--primary);color:white;padding:4px 10px;border-radius:20px;font-size:12px}
 .badge-danger{background:#ef4444}
-.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-gray-400{color:#94a3b8}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
+.grid{display:grid}.gap-2{gap:10px}.mb-2{margin-bottom:10px}.mt-2{margin-top:10px}.p-2{padding:10px}.pb-24{padding-bottom:100px}.w-full{width:100%}.text-center{text-align:center}.font-bold{font-weight:bold}.text-green-500{color:#22c55e}.text-red-500{color:#ef4444}.text-gray-400{color:#94a3b8}.text-gray-500{color:#64748b}.bg-indigo-600{background:#4f46e5}.bg-green-600{background:#16a34a}.bg-red-600{background:#dc2626}.bg-gray-600{background:#4b5563}.bg-yellow-500{background:#eab308}.bg-red-500{background:#ef4444}.text-white{color:#fff}
 .tabs{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--border)}
 .tab-btn{padding:12px;flex:1;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:15px;font-weight:bold}
 .tab-btn.ativa{border-bottom:3px solid var(--primary)}
@@ -34,6 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .lista-busca{max-height:200px;overflow-y:auto;margin-top:5px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
 .item-busca{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
 .item-busca:active{background:var(--primary)}
+.assinatura{font-size:10px;color:#64748b;text-align:center;margin-top:12px}
 </style>
 </head>
 <body>
@@ -50,7 +51,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 <div id="listaAlertaEstoque" style="font-size:14px;margin-top:8px"></div>
 </div>
 
-<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px"><div class="card" style="width:100%;max-width:380px"><h2 class="text-center font-bold" style="font-size:1.6rem;margin-bottom:12px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:13px;color:#888;text-align:center">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2 text-center"></p></div></div>
+<div id="telaLogin" style="position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px"><div class="card" style="width:100%;max-width:380px"><h2 class="text-center font-bold" style="font-size:1.6rem;margin-bottom:12px">DND PLANEJADOS</h2><p id="statusCarregando" style="font-size:13px;color:#888;text-align:center">Carregando usuários...</p><input id="usuarioLogin" class="input mb-2" placeholder="Usuário" disabled><input id="senhaLogin" type="password" class="input mb-2" placeholder="Senha" disabled><button id="btnEntrar" class="w-full btn bg-indigo-600 text-white" disabled>ENTRAR</button><button id="btnCadastrar" class="w-full btn bg-gray-600 text-white mt-2" disabled>CADASTRAR USUÁRIO</button><p id="erroLogin" class="text-red-500 mt-2 text-center"></p>
+<div class="assinatura">Sistema desenvolvido por D2 Systemas © 2026</div>
+</div></div>
 
 <div class="p-2 pb-24">
 <div id="dashboard" class="aba ativa">
@@ -174,7 +177,6 @@ function verificarEstoqueBaixo(){
     $('alertaEstoqueFixo').classList.remove('hidden');
     $('qtdAlerta').innerText = baixos.length;
     $('listaAlertaEstoque').innerHTML=baixos.map(p=>`<p>• ${p.nome}: <b class="text-red-500">${p.estoque}</b> un - Mín: ${p.estoqueMin}</p>`).join('');
-    // Vibra no celular
     if(navigator.vibrate){ navigator.vibrate([200,100,200]); }
   }else{
     $('alertaEstoqueFixo').classList.add('hidden');
