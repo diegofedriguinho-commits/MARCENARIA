@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V2.2</title>
+<title>DND PLANEJADOS - ESTOQUE V2.3</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -28,12 +28,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 .tab-btn.ativa{border-bottom:3px solid var(--primary)}
 .subaba{display:none}.subaba.ativa{display:block}
 .mov-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--border);font-size:15px}
-@media print{.menu,.topo,.btn,.tabs{display:none}body{background:white;color:black}.card{border:1px solid #000;page-break-inside:avoid}}
-@media(min-width:768px){
-.menu{grid-template-columns:repeat(7, 1fr)}
-.menu button{font-size:12px;flex-direction:row}
-.md\\:grid-cols-2{grid-template-columns:repeat(2,1fr)}
-}
+.lista-busca{max-height:200px;overflow-y:auto;margin-top:5px;border:1px solid var(--border);border-radius:8px}
+.item-busca{padding:10px;border-bottom:1px solid var(--border);cursor:pointer}
+.item-busca:active{background:var(--primary)}
 </style>
 </head>
 <body>
@@ -69,7 +66,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 <div id="sub-saida" class="subaba ativa">
 <div class="card"><h2 class="font-bold mb-2">📤 SAÍDA DE ESTOQUE</h2>
-<input id="sCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
+<input id="sBusca" class="input mb-2" placeholder="🔍 Buscar por Nome ou Código">
+<div id="listaBuscaSaida" class="lista-busca hidden"></div>
+<input id="sCod" class="input mb-2" placeholder="Código do Produto" readonly>
 <button id="btnLeitorSaida" class="w-full btn bg-red-600 text-white mb-2">📷 LER CÓDIGO</button>
 <button id="btnPararLeitorSaida" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
 <div id="leitorSaida" class="mb-2 hidden"><div class="linha-scan"></div></div>
@@ -80,7 +79,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;pa
 </div>
 <div id="sub-entrada" class="subaba">
 <div class="card"><h2 class="font-bold mb-2">📥 ENTRADA DE ESTOQUE</h2>
-<input id="eCod" class="input mb-2" placeholder="Bipar Código ou Buscar" inputmode="numeric">
+<input id="eBusca" class="input mb-2" placeholder="🔍 Buscar por Nome ou Código">
+<div id="listaBuscaEntrada" class="lista-busca hidden"></div>
+<input id="eCod" class="input mb-2" placeholder="Código do Produto" readonly>
 <button id="btnLeitorEntrada" class="w-full btn bg-green-600 text-white mb-2">📷 LER CÓDIGO</button>
 <button id="btnPararLeitorEntrada" class="w-full btn bg-red-500 text-white mb-2 hidden">⛔ PARAR LEITOR</button>
 <div id="leitorEntrada" class="mb-2 hidden"><div class="linha-scan"></div></div>
@@ -164,6 +165,23 @@ function salvarProduto(){let data={nome:$('pNome').value,cod:$('pCod').value,est
 function editarProduto(id){let p=produtos.find(x=>x.id==id);$('pId').value=p.id;$('pNome').value=p.nome;$('pCod').value=p.cod;$('pEstoqueMin').value=p.estoqueMin;$('pEstoque').value=p.estoque; window.scrollTo(0,0)}
 function excluirProduto(id){if(confirm("Excluir produto?"))db.collection("produtos").doc(id).delete()}
 
+// BUSCA POR NOME
+function buscarProduto(termo, tipo){
+  let lista = tipo=='entrada'? $('listaBuscaEntrada') : $('listaBuscaSaida');
+  if(termo.length < 2){ lista.classList.add('hidden'); return; }
+  termo = termo.toLowerCase();
+  let filtrados = produtos.filter(p => p.nome.toLowerCase().includes(termo) || p.cod.includes(termo));
+  if(filtrados.length == 0){ lista.innerHTML='<div class="item-busca">Nenhum produto encontrado</div>'; }
+  else{
+    lista.innerHTML = filtrados.map(p=>`<div class="item-busca" onclick="selecionarProduto('${p.cod}', '${tipo}')"><b>${p.nome}</b><br><span style="font-size:12px">Cód: ${p.cod} | Est: ${p.estoque||0}</span></div>`).join('');
+  }
+  lista.classList.remove('hidden');
+}
+function selecionarProduto(cod, tipo){
+  if(tipo=='entrada'){ $('eCod').value=cod; $('listaBuscaEntrada').classList.add('hidden'); $('eBusca').value=''; }
+  else{ $('sCod').value=cod; $('listaBuscaSaida').classList.add('hidden'); $('sBusca').value=''; }
+}
+
 function addEntrada(){let cod=$('eCod').value; let qtd=parseInt(toNum($('eQtd').value)); let doc=$('eDoc').value; let obs=$('eObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); let novoEstoque=(prod.estoque||0)+qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'entrada',produtoId:prod.id,produto:prod.nome,qtd,documento:doc,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Entrada lançada!"); $('eCod').value='';$('eQtd').value='';$('eDoc').value='';$('eObs').value='';}
 function addSaida(){let cod=$('sCod').value; let qtd=parseInt(toNum($('sQtd').value)); let obs=$('sObs').value; let prod=produtos.find(p=>p.cod==cod); if(!prod) return alert("Produto não encontrado!"); if((prod.estoque||0)<qtd) return alert("Estoque insuficiente!"); let novoEstoque=(prod.estoque||0)-qtd; db.collection("produtos").doc(prod.id).update({estoque:novoEstoque}); db.collection("movimentacoes").add({tipo:'saida',produtoId:prod.id,produto:prod.nome,qtd,obs,data:firebase.firestore.FieldValue.serverTimestamp(),usuario:usuarioLogado.nome}); alert("Saída lançada!"); $('sCod').value='';$('sQtd').value='';$('sObs').value='';}
 
@@ -182,27 +200,17 @@ function carregarDashboard(){
 function relProdutos(){$('resultadoRel').innerHTML=`<h2 class="font-bold">ESTOQUE ATUAL - ${new Date().toLocaleDateString('pt-BR')}</h2>`+produtos.map(p=>`<div class="card"><b>${p.nome}</b> - Est: ${p.estoque} | Mín: ${p.estoqueMin}</div>`).join('')}
 function relEntradas(){
   if(!$('dataIni').value) return alert("Selecione as datas");
-  let ini=new Date($('dataIni').value);
-  let fim=new Date($('dataFim').value+'T23:59:59');
+  let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59');
   let dados=movimentacoes.filter(m=>m.tipo=='entrada' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
   $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE ENTRADAS</h2>`+
-  dados.map(d=>`<div class="card">
-    <b>${d.produto}</b> <span class="text-green-500">+${d.qtd} un</span><br>
-    <span style="font-size:14px">Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br>
-    <span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span>
-  </div>`).join('')||'<p>Nenhuma entrada</p>'
+  dados.map(d=>`<div class="card"><b>${d.produto}</b> <span class="text-green-500">+${d.qtd} un</span><br><span style="font-size:14px">Doc: ${d.documento||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br><span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span></div>`).join('')||'<p>Nenhuma entrada</p>'
 }
 function relSaidas(){
   if(!$('dataIni').value) return alert("Selecione as datas");
-  let ini=new Date($('dataIni').value);
-  let fim=new Date($('dataFim').value+'T23:59:59');
+  let ini=new Date($('dataIni').value); let fim=new Date($('dataFim').value+'T23:59:59');
   let dados=movimentacoes.filter(m=>m.tipo=='saida' && m.data?.seconds && new Date(m.data.seconds*1000)>=ini && new Date(m.data.seconds*1000)<=fim);
   $('resultadoRel').innerHTML=`<h2 class="font-bold">RELATÓRIO DE SAÍDAS</h2>`+
-  dados.map(d=>`<div class="card">
-    <b>${d.produto}</b> <span class="text-red-500">-${d.qtd} un</span><br>
-    <span style="font-size:14px">Motivo: ${d.obs||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br>
-    <span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span>
-  </div>`).join('')||'<p>Nenhuma saída</p>'
+  dados.map(d=>`<div class="card"><b>${d.produto}</b> <span class="text-red-500">-${d.qtd} un</span><br><span style="font-size:14px">Motivo: ${d.obs||'-'} | ${new Date(d.data.seconds*1000).toLocaleString('pt-BR')}</span><br><span class="text-gray-400">Responsável: ${d.usuario||'N/I'}</span></div>`).join('')||'<p>Nenhuma saída</p>'
 }
 
 function listarUsuarios(){$('listaUsuarios').innerHTML=usuarios.map(u=>`<div class="card"><b>${u.nome}</b><br><span style="font-size:14px">Login: ${u.login} | ${u.nivel}</span><div class="mt-2 grid gap-2"><button onclick="editarUsuario('${u.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirUsuario('${u.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
@@ -270,6 +278,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btn-usuarios').onclick=()=>mostrarAba('usuarios');
   $('btn-config').onclick=()=>mostrarAba('config');
   $('btn-sair').onclick=sair;
+  $('eBusca').oninput=(e)=>buscarProduto(e.target.value, 'entrada');
+  $('sBusca').oninput=(e)=>buscarProduto(e.target.value, 'saida');
   carregarTudo();
 });
 </script>
