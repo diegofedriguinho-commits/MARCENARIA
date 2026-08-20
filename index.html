@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DND PLANEJADOS - ESTOQUE V3.2</title>
+<title>DND PLANEJADOS - ESTOQUE V3.4</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--text:#f8fafc;--border:#334155;--primary:#4f46e5}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -276,6 +276,7 @@ function salvarUsuario(){
     $('modalSenhaAdmin').classList.remove('hidden');
     $('senhaAdminConfirm').value='';
     $('erroSenhaAdmin').innerText='';
+    $('senhaAdminConfirm').focus();
   }
 }
 
@@ -285,22 +286,32 @@ function confirmarSenhaAdmin(){
   let senhaDigitada = $('senhaAdminConfirm').value;
   let admin = usuarios.find(u=>u.nivel=='admin');
 
-  if(!admin) return alert("Nenhum admin cadastrado!");
+  if(!admin) {
+    alert("Nenhum admin cadastrado!");
+    return fecharModalAdmin();
+  }
 
-  if(admin.senha == senhaDigitada){
+  if(senhaDigitada == admin.senha){
+    $('btnConfirmarAdmin').disabled = true;
     db.collection("usuarios").add(dadosNovoUsuario).then(()=>{
       alert("Usuário criado com sucesso!");
       fecharModalAdmin();
       limparFormUsuario();
-    }).catch(e=>alert("Erro ao salvar: "+e.message));
+      $('btnConfirmarAdmin').disabled = false;
+    }).catch(e=>{
+      alert("Erro ao salvar: "+e.message);
+      $('btnConfirmarAdmin').disabled = false;
+    });
   } else {
     $('erroSenhaAdmin').innerText = "Senha do Admin incorreta!";
+    $('senhaAdminConfirm').value = '';
   }
 }
 
 function fecharModalAdmin(){
   $('modalSenhaAdmin').classList.add('hidden');
   dadosNovoUsuario = null;
+  $('btnConfirmarAdmin').disabled = false;
 }
 
 function limparFormUsuario(){
@@ -362,7 +373,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   $('btnBackup').onclick=baixarBackup;
   $('btnLeitorEntrada').onclick=()=>iniciarLeitor('entrada');
   $('btnLeitorSaida').onclick=()=>iniciarLeitor('saida');
- ('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada');
+  $('btnPararLeitorEntrada').onclick=()=>pararLeitor('entrada'); // <--- CORRIGIDO AQUI
   $('btnPararLeitorSaida').onclick=()=>pararLeitor('saida');
   $('tab-saida').onclick=()=>mostrarSubAba('sub-saida');
   $('tab-entrada').onclick=()=>mostrarSubAba('sub-entrada');
