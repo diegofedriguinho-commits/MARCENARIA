@@ -156,7 +156,7 @@ function carregarTudo(){
   db.collection("movimentacoes").onSnapshot(snap=>{movimentacoes=snap.docs.map(d=>({id:d.id,...d.data()})); if(document.querySelector('#dashboard.ativa')) carregarDashboard();});
   db.collection("loja").onSnapshot(snap=>{if(!snap.empty){loja=snap.docs[0].data(); $('lNome').value=loja.nome||''; $('nomeLojaTopo').innerText=loja.nome||'DND PLANEJADOS';}});
 }
-function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"diogo",senha:"3201",nivel:"admin"}); alert("Usuário Admin criado! Login: admin / Senha: 1234")}
+function criarAdminPadrao(){db.collection("usuarios").add({nome:"Administrador",login:"diogo",senha:"3201",nivel:"admin"}); alert("Usuário Admin criado! Login: diogo / Senha: 3201")}
 function verificarEstoqueBaixo(){let baixos=produtos.filter(p=>(p.estoque||0)<= (p.estoqueMin||5)); if(baixos.length>0){$('alertaEstoque').classList.remove('hidden'); $('listaAlertaEstoque').innerHTML=baixos.map(p=>`<p>${p.nome}: <b>${p.estoque}</b> un - Mín: ${p.estoqueMin}</p>`).join('');}else{$('alertaEstoque').classList.add('hidden')}}
 
 function listarProdutos(){$('listaProdutos').innerHTML=produtos.map(p=>`<div class="card"><b style="font-size:16px">${p.nome}</b><br><span style="font-size:14px">Cód: ${p.cod}</span><br>Est: <span class="badge">${p.estoque||0}</span> | Mín: ${p.estoqueMin}<div class="mt-2 grid gap-2"><button onclick="editarProduto('${p.id}')" class="btn bg-yellow-500 text-white">EDITAR</button> <button onclick="excluirProduto('${p.id}')" class="btn bg-red-500 text-white">EXCLUIR</button></div></div>`).join('')}
